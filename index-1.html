@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>WHO KNOWS?</title>
+<meta name="description" content="A one-phone party game of secrets, bluffing, and deduction.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#100E1B">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Who Knows?">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#100E1B;
+  --bg-2:#171429;
+  --card:#1E1A33;
+  --card-2:#251F40;
+  --line:#332C55;
+  --violet:#7C5CFC;
+  --violet-2:#9B82FF;
+  --coral:#FF5D73;
+  --teal:#2DD4A7;
+  --amber:#FFB020;
+  --ink:#F3F0FF;
+  --ink-dim:#B6ADD6;
+  --ink-faint:#7A709E;
+  --radius:22px;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:
+    radial-gradient(circle at 15% -10%, #2A2350 0%, transparent 55%),
+    radial-gradient(circle at 110% 10%, #351E3E 0%, transparent 45%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  min-height:100dvh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.disp{font-family:'Space Grotesk',sans-serif;}
+#app{
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  padding:calc(20px + var(--safe-t)) 18px calc(20px + var(--safe-b));
+  max-width:520px;
+  margin:0 auto;
+  position:relative;
+}
+button{font-family:inherit;border:none;cursor:pointer;background:none;color:inherit;}
+button:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--violet-2);outline-offset:3px;}
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+
+.screen{display:flex;flex-direction:column;flex:1;animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.eyebrow{
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--violet-2);font-weight:700;margin-bottom:6px;
+}
+.title{font-size:28px;font-weight:700;line-height:1.1;margin:0 0 6px;}
+.sub{color:var(--ink-dim);font-size:15px;line-height:1.5;margin:0 0 20px;}
+
+/* Buttons */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:18px 20px;border-radius:18px;
+  font-size:17px;font-weight:700;font-family:'Space Grotesk',sans-serif;
+  transition:transform .12s ease, filter .12s ease;
+  min-height:58px;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:linear-gradient(135deg,var(--violet),#5C3FE0);color:white;box-shadow:0 10px 30px -10px rgba(124,92,252,.6);}
+.btn-secondary{background:var(--card);border:1.5px solid var(--line);color:var(--ink);}
+.btn-ghost{background:transparent;color:var(--ink-dim);font-weight:600;font-size:15px;padding:12px;min-height:auto;}
+.btn-danger{background:linear-gradient(135deg,var(--coral),#D6415A);color:white;}
+.btn-sm{padding:12px 16px;font-size:14px;min-height:44px;border-radius:14px;}
+.btn:disabled{opacity:.4;pointer-events:none;}
+.stack{display:flex;flex-direction:column;gap:12px;}
+.row{display:flex;gap:10px;}
+.grow{flex:1;}
+
+/* top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;min-height:32px;}
+.iconbtn{width:40px;height:40px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-dim);}
+
+/* cards */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:20px;
+}
+.card-glow{box-shadow:0 20px 60px -25px rgba(124,92,252,.5);}
+
+/* Player list rows */
+.player-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--line);
+  border-radius:16px;padding:12px 14px;
+}
+.avatar{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:15px;color:white;
+  background:linear-gradient(135deg,var(--av1,var(--violet)),var(--av2,var(--coral)));
+}
+.player-name-input{
+  flex:1;background:transparent;border:none;color:var(--ink);
+  font-size:16px;font-weight:600;font-family:inherit;min-width:0;
+}
+.player-name-input:focus{outline:none;}
+.player-name-input::placeholder{color:var(--ink-faint);}
+.chip{
+  font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;
+  background:rgba(124,92,252,.18);color:var(--violet-2);letter-spacing:.04em;
+}
+
+/* mode select cards */
+.mode-card{
+  background:var(--card);border:1.5px solid var(--line);border-radius:18px;
+  padding:16px 16px;display:flex;gap:14px;align-items:center;text-align:left;
+  transition:border-color .15s ease, background .15s ease;
+}
+.mode-card.selected{border-color:var(--violet);background:var(--card-2);}
+.mode-emoji{font-size:28px;width:44px;text-align:center;flex-shrink:0;}
+.mode-name{font-weight:700;font-size:16px;font-family:'Space Grotesk',sans-serif;}
+.mode-desc{font-size:13px;color:var(--ink-dim);margin-top:2px;line-height:1.4;}
+
+/* pass phone screen */
+.pass-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:22px;}
+.pass-icon{font-size:56px;animation:float 2.4s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.pass-name{font-size:40px;font-weight:700;font-family:'Space Grotesk',sans-serif;
+  background:linear-gradient(135deg,var(--violet-2),var(--coral));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.pass-hint{color:var(--ink-dim);font-size:14px;max-width:280px;line-height:1.5;}
+
+/* hold to reveal */
+.hold-btn{
+  position:relative;width:180px;height:180px;border-radius:50%;
+  background:var(--card);border:2px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-family:'Space Grotesk',sans-serif;font-size:15px;
+  color:var(--ink-dim);overflow:hidden;user-select:none;
+}
+.hold-btn svg{position:absolute;inset:0;transform:rotate(-90deg);}
+.hold-btn circle{fill:none;stroke-width:6;}
+.hold-btn .bg-ring{stroke:var(--line);}
+.hold-btn .fg-ring{stroke:var(--violet-2);stroke-linecap:round;transition:stroke-dashoffset .05s linear;}
+.hold-btn.active{color:var(--ink);}
+.hold-label{position:relative;z-index:2;pointer-events:none;padding:0 20px;}
+
+.secret-panel{
+  width:100%;background:var(--card-2);border:1.5px solid var(--violet);
+  border-radius:20px;padding:22px 20px;min-height:140px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;
+  animation:revealPop .25s ease;
+}
+.secret-panel.warn{border-color:var(--coral);background:rgba(255,93,115,.08);}
+.secret-panel.warn .secret-tag{color:var(--coral);}
+@keyframes revealPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.secret-tag{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--violet-2);}
+.secret-body{font-size:22px;font-weight:700;font-family:'Space Grotesk',sans-serif;line-height:1.3;}
+.secret-note{font-size:13px;color:var(--ink-dim);margin-top:4px;line-height:1.4;}
+
+/* discussion / timer */
+.timer-ring-wrap{position:relative;width:230px;height:230px;margin:10px auto;}
+.timer-ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.timer-ring-wrap circle{fill:none;stroke-width:10;}
+.timer-bg{stroke:var(--card-2);}
+.timer-fg{stroke:var(--teal);stroke-linecap:round;transition:stroke-dashoffset 1s linear;}
+.timer-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.timer-num{font-size:44px;font-weight:700;font-family:'Space Grotesk',sans-serif;}
+.timer-label{font-size:12px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;}
+.timer-fg.warn{stroke:var(--amber);}
+.timer-fg.crit{stroke:var(--coral);}
+
+.banner{
+  background:var(--card-2);border:1px solid var(--line);border-radius:16px;
+  padding:14px 16px;font-size:14px;color:var(--ink-dim);text-align:center;line-height:1.5;
+}
+.banner b{color:var(--ink);}
+
+/* vote list */
+.vote-option{
+  display:flex;align-items:center;gap:12px;width:100%;
+  background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+  padding:14px;font-size:16px;font-weight:600;text-align:left;
+}
+.vote-option.chosen{border-color:var(--coral);background:var(--card-2);}
+.vote-option .avatar{margin-right:2px;}
+
+/* results */
+.result-row{display:flex;align-items:center;gap:10px;padding:8px 0;}
+.result-bar-bg{flex:1;height:10px;border-radius:6px;background:var(--card-2);overflow:hidden;}
+.result-bar-fg{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--violet),var(--coral));}
+
+.tag-truth{display:inline-block;background:rgba(45,212,167,.16);color:var(--teal);font-weight:700;font-size:12px;padding:5px 10px;border-radius:20px;margin-bottom:8px;}
+.tag-target{display:inline-block;background:rgba(255,93,115,.16);color:var(--coral);font-weight:700;font-size:12px;padding:5px 10px;border-radius:20px;}
+
+.scoreboard-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+.scoreboard-row:last-child{border-bottom:none;}
+.score-num{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:var(--violet-2);min-width:34px;text-align:right;}
+
+.footer-nav{display:flex;gap:10px;margin-top:16px;}
+
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;}
+.pill{
+  padding:9px 14px;border-radius:20px;background:var(--card);border:1.5px solid var(--line);
+  font-size:13px;font-weight:600;color:var(--ink-dim);
+}
+.pill.active{border-color:var(--violet);color:var(--ink);background:var(--card-2);}
+
+.badge-earn{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--card-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;
+}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stat-box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center;}
+.stat-num{font-size:24px;font-weight:700;font-family:'Space Grotesk',sans-serif;color:var(--violet-2);}
+.stat-label{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+
+.tutorial-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;}
+.tut-emoji{font-size:52px;}
+.dots{display:flex;gap:6px;justify-content:center;margin:14px 0;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--line);}
+.dot.on{background:var(--violet-2);width:20px;border-radius:4px;}
+
+.spice-flash{
+  position:fixed;inset:0;background:rgba(16,14,27,.92);z-index:50;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:30px;
+  animation:fadeIn .25s ease;
+}
+::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============================= AUDIO ============================= */
+let audioCtx=null;
+function ensureAudio(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+function beep(freq=440,dur=.12,type='sine',vol=.12,delay=0){
+  if(!settings.sound) return;
+  ensureAudio(); if(!audioCtx) return;
+  const t0=audioCtx.currentTime+delay;
+  const osc=audioCtx.createOscillator(); const gain=audioCtx.createGain();
+  osc.type=type; osc.frequency.setValueAtTime(freq,t0);
+  gain.gain.setValueAtTime(0,t0);
+  gain.gain.linearRampToValueAtTime(vol,t0+.01);
+  gain.gain.exponentialRampToValueAtTime(.001,t0+dur);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(t0); osc.stop(t0+dur+.02);
+}
+const sfx={
+  flip:()=>{beep(520,.09,'triangle',.1); beep(760,.09,'triangle',.09,.05);},
+  reveal:()=>beep(660,.18,'sine',.13),
+  tick:()=>beep(880,.03,'square',.03),
+  lock:()=>{beep(300,.08,'square',.1); beep(200,.1,'square',.09,.06);},
+  dramatic:()=>{beep(220,.3,'sawtooth',.08); beep(330,.3,'sawtooth',.07,.15); beep(440,.4,'sawtooth',.08,.3);},
+  win:()=>{[523,659,784,1046].forEach((f,i)=>beep(f,.15,'triangle',.1,i*.09));},
+  wrong:()=>{beep(200,.25,'sawtooth',.1); beep(150,.3,'sawtooth',.09,.1);},
+};
+
+/* ============================= STATE ============================= */
+let settings = JSON.parse(localStorage.getItem('wk_settings')||'{}');
+if(settings.sound===undefined) settings.sound=true;
+if(settings.categoryHints===undefined) settings.categoryHints=true;
+function saveSettings(){ localStorage.setItem('wk_settings',JSON.stringify(settings)); }
+
+let stats = JSON.parse(localStorage.getItem('wk_stats')||'null') || {
+  gamesPlayed:0, roundsPlayed:0, correctAccusations:0, successfulBluffs:0,
+  timesVotedOut:0, bestStreak:0, curStreak:0
+};
+function saveStats(){ localStorage.setItem('wk_stats',JSON.stringify(stats)); }
+
+let recentRounds = JSON.parse(localStorage.getItem('wk_recent')||'[]');
+function pushRecent(sig){ recentRounds.unshift(sig); recentRounds=recentRounds.slice(0,60); localStorage.setItem('wk_recent',JSON.stringify(recentRounds)); }
+function isRecent(sig){ return recentRounds.includes(sig); }
+
+const S = {
+  screen:'menu',
+  players:[], // {id,name}
+  chaosLevel:'normal', // low/normal/chaos
+  discussionSeconds:180,
+  selectedMode:null, // null = quick play (auto)
+  revealIndex:0,
+  revealed:{}, // id -> true once shown
+  round:null, // current generated round
+  twist:null,
+  votes:{}, // voterId -> targetId
+  voteIndex:0,
+  score:{}, // playerId -> points this session
+  tutIndex:0,
+  holding:false,
+  spiceMsg:null,
+  redemptionQueue:[], redemptionIndex:0, redemptionChoice:null, redemptionRevealed:false,
+  wlGuess:null, wlScored:false, wlRevealedNow:false, wlHoldDone:false,
+  wlLastGuesserId:null, // tracks rotation so the same player never guesses twice in a row
+};
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+const AVATAR_PAIRS=[['#7C5CFC','#FF5D73'],['#2DD4A7','#7C5CFC'],['#FFB020','#FF5D73'],['#FF5D73','#7C5CFC'],['#2DD4A7','#FFB020'],['#9B82FF','#2DD4A7']];
+function initials(n){ return (n||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+
+/* ============================= CONTENT POOLS ============================= */
+/* Huge, easy word bank for The Secret mode. Everyone gets the same word except the blank
+   player(s) — simple, common, unambiguous words only. ~1900 words across 19 categories. */
+const WORD_BANK = [
+{name:'Animals', words:['Lion','Tiger','Elephant','Giraffe','Zebra','Monkey','Gorilla','Panda','Koala','Kangaroo','Bear','Wolf','Fox','Deer','Moose','Rabbit','Squirrel','Raccoon','Skunk','Beaver','Otter','Hedgehog','Bat','Owl','Eagle','Hawk','Falcon','Parrot','Penguin','Flamingo','Peacock','Swan','Duck','Goose','Chicken','Rooster','Turkey','Crow','Pigeon','Woodpecker','Snake','Lizard','Turtle','Frog','Toad','Crocodile','Alligator','Chameleon','Iguana','Gecko','Shark','Whale','Dolphin','Octopus','Squid','Jellyfish','Starfish','Crab','Lobster','Shrimp','Seahorse','Clownfish','Goldfish','Salmon','Tuna','Catfish','Eel','Stingray','Seal','Walrus','Otter Pup','Horse','Pony','Cow','Bull','Pig','Sheep','Goat','Donkey','Llama','Alpaca','Camel','Buffalo','Ox','Dog','Puppy','Cat','Kitten','Hamster','Guinea Pig','Mouse','Rat','Ferret','Chinchilla','Ant','Bee','Wasp','Butterfly','Moth','Ladybug','Beetle','Grasshopper','Cricket','Spider','Scorpion','Snail','Slug','Worm','Centipede','Firefly','Dragonfly','Mosquito','Fly','Cheetah','Leopard','Jaguar','Panther','Hyena','Rhino','Hippo','Antelope','Gazelle','Meerkat','Sloth','Armadillo','Porcupine','Platypus','Emu','Ostrich','Toucan','Puffin','Stork','Pelican','Vulture']},
+{name:'Foods & Drinks', words:['Pizza','Burger','Hot Dog','Taco','Burrito','Sandwich','Sushi','Ramen','Pasta','Spaghetti','Lasagna','Mac and Cheese','Fried Rice','Pancakes','Waffles','French Toast','Cereal','Oatmeal','Bagel','Donut','Muffin','Croissant','Toast','Popcorn','Chips','Pretzels','Nachos','Guacamole','Salsa','French Fries','Onion Rings','Chicken Nuggets','Fried Chicken','Steak','Bacon','Sausage','Meatballs','Ribs','Grilled Cheese','Soup','Salad','Pizza Rolls','Quesadilla','Fajitas','Enchiladas','Dumplings','Spring Rolls','Fried Egg','Scrambled Eggs','Omelette','Ice Cream','Cake','Cupcake','Cookie','Brownie','Pie','Pudding','Jello','Candy','Chocolate','Gummy Bears','Lollipop','Marshmallow','Milkshake','Smoothie','Soda','Lemonade','Iced Tea','Hot Chocolate','Coffee','Orange Juice','Apple Juice','Milk','Water Bottle','Watermelon','Pineapple','Strawberry','Blueberry','Banana','Apple','Orange','Grapes','Mango','Peach','Cherry','Kiwi','Coconut','Avocado','Carrot','Broccoli','Corn','Potato','Tomato','Cucumber','Lettuce','Onion','Garlic','Pumpkin','Mushroom','Cheese','Butter','Peanut Butter','Jelly','Honey','Maple Syrup','Ketchup','Mustard','Mayonnaise','BBQ Sauce','Hot Sauce','Ranch Dressing','Bread','Rice','Noodles','Cupcakes','Croutons','Yogurt','Granola','Trail Mix','Beef Jerky','Meatloaf','Chili','Clam Chowder','Pumpkin Pie','Apple Pie','Birthday Cake','S\'mores','Root Beer Float']},
+{name:'Movies', words:['Titanic','Jaws','Frozen','Shrek','The Lion King','Finding Nemo','Toy Story','Cars','Up','Inside Out','Moana','Encanto','Coco','Zootopia','Aladdin','Cinderella','Tangled','Brave','The Incredibles','Monsters Inc','Ratatouille','Wall-E','Home Alone','Elf','The Grinch','Jurassic Park','Star Wars','Harry Potter','The Avengers','Spider-Man','Batman','Superman','Iron Man','Black Panther','Wonder Woman','The Matrix','Back to the Future','E.T.','Ghostbusters','Jumanji','The Wizard of Oz','Willy Wonka','Charlotte\'s Web','Babe','Beethoven','Air Bud','The Sandlot','Grease','Footloose','Dirty Dancing','Rocky','The Karate Kid','Mean Girls','Legally Blonde','Clueless','The Hunger Games','Twilight','Divergent','Percy Jackson','Alice in Wonderland','Peter Pan','The Little Mermaid','Beauty and the Beast','Sleeping Beauty','Snow White','Pinocchio','Bambi','Dumbo','101 Dalmatians','The Jungle Book','Mulan','Pocahontas','Hercules','Kung Fu Panda','How to Train Your Dragon','Despicable Me','Minions','The Croods','Trolls','Sing','The Emoji Movie','Space Jam','Godzilla','King Kong','Transformers','Fast and Furious','Mission Impossible','James Bond','Indiana Jones','Pirates of the Caribbean','National Treasure','The Mummy','Men in Black','Ghost Rider','Teenage Mutant Ninja Turtles','Scooby-Doo','Paddington','Chicken Little','Ice Age','Madagascar']},
+{name:'Sports & Games', words:['Basketball','Football','Soccer','Baseball','Tennis','Golf','Hockey','Volleyball','Softball','Bowling','Boxing','Wrestling','Swimming','Diving','Surfing','Skateboarding','Snowboarding','Skiing','Ice Skating','Gymnastics','Track and Field','Cross Country','Rugby','Cricket','Badminton','Table Tennis','Archery','Fencing','Rock Climbing','Cheerleading','Dance','Karate','Judo','Taekwondo','Horse Racing','Cycling','Rowing','Sailing','Fishing','Hunting','Frisbee','Cornhole','Darts','Pool','Foosball','Chess','Checkers','Monopoly','Poker','Uno','Jenga','Scrabble','Dominoes','Charades','Hide and Seek','Tag','Duck Duck Goose','Red Light Green Light','Musical Chairs','Twister','Video Games','Minecraft','Fortnite','Roblox','Chess Club','Dodgeball','Kickball','Four Square','Hopscotch','Jump Rope','Tug of War','Relay Race','Marathon','Olympics','Super Bowl','World Cup','March Madness','Lacrosse','Water Polo','Curling','Bobsled','Figure Skating','Pole Vault','Long Jump','Shot Put','Discus','Javelin','Hurdles','Triathlon','Decathlon','Weightlifting','Powerlifting','CrossFit','Pilates','Zumba','Trampoline Park','Laser Tag','Paintball','Go-Karting','Mini Golf','Bocce Ball','Horseshoes','Shuffleboard','Ping Pong','Air Hockey','Skee-Ball','Whack-a-Mole','Claw Machine','Battleship','Candy Land','Operation','Guess Who','Connect Four','Yahtzee','Risk','Clue','Sorry','Trouble','Simon Says','Freeze Tag','Capture the Flag','Wiffle Ball','Kick the Can']},
+{name:'Jobs & Careers', words:['Doctor','Nurse','Dentist','Teacher','Firefighter','Police Officer','Pilot','Flight Attendant','Chef','Waiter','Farmer','Veterinarian','Lawyer','Judge','Accountant','Engineer','Architect','Scientist','Astronaut','Artist','Musician','Actor','Photographer','Journalist','Author','Librarian','Plumber','Electrician','Mechanic','Carpenter','Construction Worker','Truck Driver','Bus Driver','Taxi Driver','Sailor','Soldier','Coach','Referee','Personal Trainer','Hairdresser','Barber','Tailor','Fashion Designer','Baker','Butcher','Cashier','Salesperson','Real Estate Agent','Bank Teller','Postal Worker','Garbage Collector','Janitor','Security Guard','Lifeguard','Park Ranger','Zookeeper','Babysitter','Nanny','Tutor','Coach Driver','Software Developer','Web Designer','Graphic Designer','Animator','Video Editor','DJ','Comedian','Dancer','Singer','Model','Politician','Mayor','President','Principal','School Counselor','Translator','Pharmacist','Surgeon','Paramedic','Optometrist','Chiropractor','Physical Therapist','Massage Therapist','Interior Designer','Event Planner','Wedding Planner','Travel Agent','Tour Guide','Flight Instructor','Air Traffic Controller','Ship Captain','Lumberjack','Miner','Welder','Locksmith','Roofer','Painter','Landscaper','Florist','Jeweler','Watchmaker','Shoemaker','Bookkeeper','Insurance Agent','Stockbroker','Loan Officer','Notary','Court Reporter','Detective','FBI Agent','Bodyguard','Umpire','Sports Announcer','Weatherman','News Anchor','Radio Host','Talk Show Host','Puppeteer','Circus Performer','Magician','Clown','Stunt Double','Voice Actor','Cartoonist','Illustrator','Sculptor']},
+{name:'Places', words:['Beach','Mountain','Forest','Desert','Island','Jungle','Cave','Waterfall','Lake','River','Ocean','Volcano','Canyon','Valley','Meadow','Farm','Zoo','Aquarium','Museum','Library','School','Hospital','Airport','Train Station','Bus Stop','Gas Station','Grocery Store','Mall','Movie Theater','Amusement Park','Water Park','Playground','Park','Stadium','Gym','Restaurant','Cafe','Bakery','Ice Cream Shop','Bookstore','Toy Store','Pet Store','Barber Shop','Salon','Bank','Post Office','Church','Castle','Palace','Bridge','Tunnel','Lighthouse','Windmill','Farmhouse','Cabin','Treehouse','Igloo','Tent','Campground','City','Village','Town','Neighborhood','Backyard','Garden','Garage','Attic','Basement','Kitchen','Bedroom','Bathroom','Living Room','Classroom','Office','Hotel','Cruise Ship','Space Station','The Moon','Antarctica','The North Pole','Las Vegas','New York City','Disneyland','The Grand Canyon','Paris','London','Tokyo','Hawaii','Rome','Egypt','China','Mexico','Canada','Australia','Amazon Rainforest','Sahara Desert','Niagara Falls','Mount Everest','The Great Wall','The Eiffel Tower','The Statue of Liberty','Great Barrier Reef','Yellowstone Park','Times Square','Hollywood','Silicon Valley','Wall Street','The White House','A Farmers Market','A Flea Market','A Food Court','An Amphitheater','A Drive-In Theater','A Skate Park','A Dog Park','A Fairground','A Carnival','A Rest Stop','A Truck Stop','A Toll Booth','A Parking Garage','A Subway Station','A Ferry Terminal','A Border Crossing']},
+{name:'Everyday Objects', words:['Backpack','Umbrella','Wallet','Keys','Phone','Watch','Sunglasses','Hat','Scarf','Gloves','Mirror','Clock','Lamp','Candle','Flashlight','Blanket','Pillow','Alarm Clock','Broom','Mop','Vacuum','Trash Can','Bucket','Sponge','Towel','Toothbrush','Hairbrush','Comb','Soap','Shampoo','Razor','Scissors','Tape','Glue','Stapler','Paperclip','Rubber Band','Envelope','Stamp','Suitcase','Camera','Binoculars','Compass','Map','Flag','Balloon','Kite','Bubble Wrap','Basket','Box','Ladder','Rope','Chain','Padlock','Hammer','Screwdriver','Wrench','Nail','Screw','Toolbox','Flashcard','Notebook','Calendar','Wallet Chain','Piggy Bank','Coin','Dollar Bill','Credit Card','Remote Control','Battery','Extension Cord','Light Bulb','Fan','Air Conditioner','Thermometer','Bandage','First Aid Kit','Water Bottle','Lunch Box','Thermos','Clipboard','Whistle','Megaphone','Trophy','Medal','Ribbon','Certificate','Nametag','Lanyard','Badge','Magnet','Chalk','Eraser','Pushpin','Binder Clip','Rubber Duck','Squirt Gun','Beach Ball','Pool Noodle','Sunscreen','Bug Spray','Fly Swatter','Mousetrap','Doormat','Welcome Sign','Wind Chime','Bird Feeder','Garden Hose','Wheelbarrow','Shovel','Rake','Lawn Mower','Watering Can','Clothesline','Clothespin','Sewing Kit','Safety Pin','Zipper','Button','Coat Hanger','Ironing Board','Iron']},
+{name:'School & Office', words:['Pencil','Pen','Eraser','Ruler','Crayon','Marker','Highlighter','Notebook Paper','Binder','Folder','Textbook','Backpack','Lunchbox','Locker','Desk','Chalkboard','Whiteboard','Projector','Computer Lab','Recess','Homework','Test','Quiz','Report Card','Field Trip','Detention','Principal\'s Office','Cafeteria','Gym Class','Science Lab','Art Class','Music Class','Library Book','Bookshelf','Calculator','Protractor','Compass Tool','Glue Stick','Scissors','Tape Dispenser','Stapler','Sticky Notes','Index Cards','Chalk','Yardstick','School Bus','Hall Pass','Yearbook','Graduation Cap','Diploma','Spelling Bee','Show and Tell','Pop Quiz','Group Project','Science Fair','Book Report','Substitute Teacher','Hall Monitor','Student Council','Class President','Valedictorian','Study Hall','Detention Slip','Permission Slip','Bake Sale','Pep Rally','Homecoming','Prom','School Play','Debate Team','Chess Club','Math Club','Robotics Club','Yearbook Committee','School Newspaper','Morning Announcements','Fire Drill','Lockdown Drill','Lunch Line','Vending Machine','Water Fountain','Bulletin Board','Name Tag Sticker','Cubby','Coat Hook','Nap Mat','Circle Time','Story Time','Alphabet Chart','Number Line']},
+{name:'Video Games & Characters', words:['Mario','Luigi','Princess Peach','Bowser','Yoshi','Sonic the Hedgehog','Pikachu','Link','Zelda','Kirby','Pac-Man','Donkey Kong','Steve','Creeper','Enderman','Master Chief','Lara Croft','Sackboy','Crash Bandicoot','Spyro','Among Us Crewmate','Fortnite','Minecraft','Roblox','Animal Crossing','Pokemon','Super Smash Bros','Mario Kart','Candy Crush','Angry Birds','Tetris','Pac-Man Ghost','Joystick','Game Controller','Video Game Console','Arcade Machine','High Score','Boss Battle','Power-Up','Extra Life','Game Over','Level Up','Checkpoint','Cheat Code','Loading Screen','Respawn','Health Bar','Inventory','Sword and Shield','Treasure Chest','Secret Level','Final Boss','Multiplayer','Speedrun','Leaderboard','Achievement Unlocked','Season Pass','Skin','Emote','Loot Box','Virtual Reality Headset','Gaming Chair','Headset Mic','Rage Quit','NPC','Sidequest','Save Point','Pause Menu','Character Select']},
+{name:'Superheroes & Characters', words:['Superman','Batman','Wonder Woman','Spider-Man','Iron Man','Captain America','Thor','Hulk','Black Panther','Black Widow','The Flash','Green Lantern','Aquaman','Wolverine','Deadpool','Ant-Man','Doctor Strange','Captain Marvel','Ironman Suit','Robin','Catwoman','The Joker','Darth Vader','Yoda','Luke Skywalker','Princess Leia','Han Solo','Chewbacca','Optimus Prime','Bumblebee','Shrek','Buzz Lightyear','Woody','Mickey Mouse','Minnie Mouse','Donald Duck','Goofy','SpongeBob SquarePants','Patrick Star','Scooby-Doo','Bugs Bunny','Tweety Bird','Elmo','Big Bird','Cookie Monster','Winnie the Pooh','Tigger','Peppa Pig','Paw Patrol','Elsa','Anna','Olaf','Simba','Nemo','Dory','Baby Yoda','R2-D2','C-3PO','Ariel','Belle','Jasmine','Rapunzel','Cinderella','Snow White','The Grinch','Rudolph','Frosty the Snowman','The Tooth Fairy','The Easter Bunny','Sherlock Holmes','Dracula','Frankenstein','The Mummy Monster','Godzilla the Monster','King Kong the Ape','The Tin Man','The Scarecrow','The Cowardly Lion','Dorothy','Curious George','Clifford the Big Red Dog','Arthur','Barney','Dora the Explorer','Blue from Blues Clues','Thomas the Tank Engine','The Cat in the Hat','Charlie Brown','Snoopy','Garfield','Odie','Tom and Jerry','The Road Runner','Wile E Coyote']},
+{name:'Music & Instruments', words:['Guitar','Piano','Drums','Violin','Flute','Trumpet','Saxophone','Clarinet','Cello','Trombone','Harp','Ukulele','Banjo','Accordion','Xylophone','Tambourine','Maracas','Bagpipes','Recorder','Microphone','Headphones','Speaker','DJ Turntable','Record Player','Music Note','Sheet Music','Choir','Band','Orchestra','Concert','Karaoke','Rap','Pop Music','Rock Music','Country Music','Jazz','Classical Music','National Anthem','Birthday Song','Lullaby','Marching Band','Beatbox','Cowbell','Triangle Instrument','Bass Guitar','Electric Guitar','Keyboard Instrument','Harmonica','French Horn','Tuba','Bongo Drums','Conga Drums','Cymbals','Sheet of Piano Keys','Music Stand','Guitar Pick','Drumstick','Metronome','Amplifier','Songwriter','Music Video','Talent Show','Air Guitar','Whistling','Humming','Beatboxing Battle','Duet','Solo Performance','Encore']},
+{name:'Weather & Nature', words:['Sun','Moon','Stars','Rainbow','Cloud','Rain','Snow','Hail','Thunder','Lightning','Tornado','Hurricane','Fog','Wind','Storm','Blizzard','Heat Wave','Frost','Ice','Puddle','Flood','Drought','Sunrise','Sunset','Eclipse','Shooting Star','Northern Lights','Tree','Flower','Grass','Leaf','Branch','Root','Seed','Mountain Peak','Cliff','Cave Entrance','Rock','Boulder','Sand','Soil','Mud','Dust','Wave','Tide','Whirlpool','Iceberg','Glacier','Rainforest','Coral Reef','Oak Tree','Pine Tree','Palm Tree','Cactus','Rose','Sunflower','Tulip','Daisy','Dandelion','Clover','Mushroom Patch','Vine','Moss','Pond','Stream','Swamp','Marsh','Prairie','Tundra','Volcano Eruption','Earthquake','Avalanche','Sinkhole','Geyser','Sand Dune','Oasis','Rain Cloud','Puddle Jumping','Autumn Leaves','Spring Bloom','Summer Heat','Winter Chill','Dew','Mist','Breeze','Gust of Wind']},
+{name:'Vehicles & Transportation', words:['Car','Truck','Bus','Bicycle','Motorcycle','Train','Subway','Airplane','Helicopter','Boat','Ship','Submarine','Canoe','Kayak','Sailboat','Rocket Ship','Hot Air Balloon','Skateboard','Scooter','Roller Skates','Tricycle','Golf Cart','Ambulance','Fire Truck','Police Car','Taxi','Limousine','School Bus','Race Car','Monster Truck','Tractor','Bulldozer','Crane','Dump Truck','Garbage Truck','Cement Mixer','Forklift','Segway','Wheelchair','Stroller','Sled','Snowmobile','Jet Ski','Ferry','Cruise Ship','Tank','Cable Car','Ski Lift','Convertible','Pickup Truck','Minivan','Station Wagon','Moped','Unicycle','Hoverboard','Go-Kart','Dune Buggy','RV Camper','Food Truck','Ice Cream Truck','Moving Truck','Tow Truck','Freight Train','Steam Train','Bullet Train','Glider Plane','Biplane','Fighter Jet','Space Shuttle','Cargo Ship','Tugboat','Rowboat','Paddle Boat','Jet Pack','Zeppelin','Cable Tram']},
+{name:'Body & Health', words:['Head','Hair','Eye','Ear','Nose','Mouth','Teeth','Tongue','Chin','Neck','Shoulder','Arm','Elbow','Wrist','Hand','Finger','Thumb','Chest','Back','Stomach','Hip','Leg','Knee','Ankle','Foot','Toe','Heart','Brain','Lungs','Skin','Bone','Muscle','Fever','Cough','Sneeze','Headache','Stomachache','Broken Arm','Band-Aid','Cast','Crutches','Wheelchair','X-Ray','Stethoscope','Thermometer','Vaccine','Sunburn','Bruise','Blister','Yawn','Hiccup','Cold','Flu','Allergy','Rash','Cavity','Braces','Glasses','Contact Lenses','Hearing Aid','Wheelchair Ramp','Doctor\'s Office','Checkup','Physical Exam','Sling','Ice Pack','Heating Pad','Cough Syrup','Vitamin','Toothache','Earache','Nosebleed','Chicken Pox','Freckles','Dimples','Wrinkle','Goosebumps','Hiccups','Belly Button','Eyelash','Eyebrow','Fingernail']},
+{name:'Holidays & Celebrations', words:['Birthday Party','Christmas','Halloween','Thanksgiving','Easter','New Year\'s Eve','Valentine\'s Day','Fourth of July','St. Patrick\'s Day','Hanukkah','Graduation','Wedding','Baby Shower','Anniversary','Family Reunion','Thanksgiving Turkey','Christmas Tree','Santa Claus','Easter Bunny','Trick or Treat','Fireworks Show','Birthday Cake','Christmas Presents','Halloween Costume','Christmas Stocking','Mother\'s Day','Father\'s Day','Cinco de Mayo','Groundhog Day','April Fools Day','Labor Day','Memorial Day','Veterans Day','Earth Day','Pi Day','Leap Year Day','Kwanzaa','Diwali','Lunar New Year','Oktoberfest','Carnival','Mardi Gras','Sweet Sixteen','Quinceanera','Retirement Party','Housewarming Party','Gender Reveal Party','Costume Party','Surprise Party','Pool Party','Slumber Party']},
+{name:'Hobbies & Activities', words:['Drawing','Painting','Reading','Writing','Singing','Dancing','Cooking','Baking','Gardening','Photography','Knitting','Sewing','Woodworking','Pottery','Origami','Coloring','Puzzle','Legos','Building Blocks','Camping','Hiking','Fishing Trip','Bird Watching','Stargazing','Collecting Stamps','Collecting Coins','Playing Cards','Board Games','Scrapbooking','Journaling','Yoga','Meditation','Skateboarding Trick','Surfing','Rollerblading','Bike Riding','Building Sandcastles','Flying a Kite','Making Slime','Blowing Bubbles','Playing Dress Up','Building a Fort','Roasting Marshmallows','Whittling','Calligraphy','Beekeeping','Model Building','Metal Detecting','Geocaching','Volunteering','Thrifting','Antiquing','Home Brewing','Wine Tasting','Cheese Making','Candle Making','Soap Making','Jewelry Making','Bracelet Making','Friendship Bracelets','Duct Tape Crafts','Sidewalk Chalk Art','Finger Painting','Sand Art','Puppet Show','Talent Show Act','Lemonade Stand','Treasure Hunt','Scavenger Hunt','Escape Room','Ghost Hunting','Storm Chasing','Whale Watching','Snorkeling','Tubing','Paddleboarding','Rafting']},
+{name:'Emotions & Feelings', words:['Happy','Sad','Angry','Scared','Excited','Nervous','Confused','Surprised','Proud','Embarrassed','Jealous','Bored','Curious','Shy','Confident','Frustrated','Relieved','Grateful','Lonely','Hopeful','Silly','Sleepy','Grumpy','Worried','Brave','Calm','Cranky','Overwhelmed','Disappointed','Amazed','Homesick','Nostalgic','Suspicious','Guilty','Anxious','Content','Motivated','Inspired','Awkward','Giddy','Annoyed','Impatient','Determined','Terrified','Cheerful','Miserable','Sympathetic','Mischievous','Envious','Startled','Peaceful']},
+{name:'Household Items', words:['Couch','Table','Chair','Bed','Dresser','Closet','Refrigerator','Stove','Oven','Microwave','Toaster','Blender','Dishwasher','Washing Machine','Dryer','Television','Remote','Bookshelf','Rug','Curtains','Doorbell','Mailbox','Fence','Porch','Deck','Swimming Pool','Trampoline','Swing Set','Doghouse','Birdhouse','Mailman','Front Door','Window','Staircase','Elevator','Chimney','Fireplace','Rocking Chair','Bean Bag Chair','Bunk Bed','Crib','High Chair','Recliner','Coffee Table','Nightstand','Ottoman','China Cabinet','Wine Rack','Spice Rack','Cutting Board','Dish Rack','Trash Compactor','Garbage Disposal','Ceiling Fan','Smoke Detector','Thermostat','Doormat','Welcome Mat','Peephole','Deadbolt','Screen Door','Storm Door','Gutter','Shutters','Awning','Skylight','Hammock','Patio Furniture','Grill','Fire Pit','Garden Gnome','Sprinkler','Wheelbarrow','Compost Bin']},
+{name:'Technology', words:['Phone','Laptop','Computer','Tablet','Smartwatch','Wifi','Charger','Headphones','Earbuds','Bluetooth Speaker','Camera','Printer','Keyboard','Mouse','Monitor','Router','USB Drive','Selfie','Text Message','Video Call','Podcast','App','Website','Password','QR Code','Battery Pack','Robot','Drone','GPS','Streaming Service','Social Media','Emoji','Webcam','Microphone Stand','Gaming Mouse','Smart Home Speaker','Smart Light Bulb','Doorbell Camera','E-Reader','Power Bank','Flash Drive','Screen Protector','Phone Case','Pop Socket','Selfie Stick','Ring Light','Green Screen','Virtual Assistant','Voice Command','Autocorrect','Group Chat','Video Game Livestream','Online Shopping Cart','Two Factor Code']},
+{name:'Clothing & Accessories', words:['Shirt','T-Shirt','Pants','Jeans','Shorts','Dress','Skirt','Jacket','Coat','Sweater','Hoodie','Socks','Shoes','Sneakers','Boots','Sandals','Flip Flops','Hat','Baseball Cap','Beanie','Scarf','Gloves','Mittens','Belt','Tie','Bow Tie','Backpack','Purse','Necklace','Bracelet','Earrings','Ring','Sunglasses','Watch','Pajamas','Bathrobe','Swimsuit','Raincoat','Umbrella','Apron','Costume','Vest','Blazer','Cardigan','Overalls','Leggings','Tights','Pantyhose','Suspenders','Cufflinks','Bow','Headband','Hair Clip','Hair Tie','Wristband','Anklet','Brooch','Cummerbund','Poncho','Cape','Tuxedo','Ball Gown','Wedding Dress','Graduation Gown','Lab Coat','Chef\'s Hat','Hard Hat','Cowboy Hat','Top Hat','Beret','Visor','Mask','Wig','Fanny Pack','Tote Bag']}
+];
+
+
+/* Roles for the One Night style Werewolf mode. Everything here is grounded — real swaps,
+   real information, tracked by the game engine — so the group can actually reason it out. */
+const WEREWOLF_ROLE_INFO = {
+  Werewolf: {emoji:'🐺', villain:true},
+  Seer: {emoji:'🔮', villain:false},
+  Robber: {emoji:'🗡️', villain:false},
+  Troublemaker: {emoji:'🎭', villain:false},
+  Villager: {emoji:'🧑\u200d🌾', villain:false},
+};
+
+const MOLE_MISSIONS = [
+  {theme:'Going to the Movies', cat:'Errands & Outings', steps:['Get in the car','Drive to the theater','Buy the tickets','Buy popcorn and a drink','Find your seats','Watch the previews','Watch the movie','Talk about it on the way out']},
+  {theme:'Making a Sandwich', cat:'Food & Cooking', steps:['Get out two slices of bread','Grab the meat and cheese from the fridge','Spread on the mayo or mustard','Layer the meat and cheese','Add lettuce and tomato','Put the top slice on','Cut it in half','Take a bite']},
+  {theme:'Doing a Load of Laundry', cat:'Home & Chores', steps:['Sort the clothes by color','Load the washer','Add detergent','Start the wash cycle','Move the clothes to the dryer','Start the dryer','Fold the clothes when they\'re done','Put everything away']},
+  {theme:'Going Grocery Shopping', cat:'Errands & Outings', steps:['Make a shopping list','Drive to the store','Grab a cart','Walk the aisles and fill the cart','Check out at the register','Bag the groceries','Load the car','Put everything away at home']},
+  {theme:'Getting Ready for School', cat:'Daily Routine', steps:['Wake up to the alarm','Brush your teeth','Get dressed','Eat breakfast','Pack your backpack','Put on your shoes','Grab your bag','Head out the door']},
+  {theme:'Baking Cookies', cat:'Food & Cooking', steps:['Preheat the oven','Mix the butter and sugar','Add the eggs and vanilla','Stir in the flour','Fold in the chocolate chips','Scoop the dough onto a tray','Bake for about 10 minutes','Let them cool before eating']},
+  {theme:'Washing the Car', cat:'Home & Chores', steps:['Rinse off the loose dirt','Fill a bucket with soapy water','Scrub the car with a sponge','Rinse the soap off','Dry it with a towel','Clean the windows','Vacuum the inside','Admire the finished car']},
+  {theme:'Setting Up a Tent', cat:'Outdoors', steps:['Pick a flat spot','Lay out the tent','Assemble the poles','Slide the poles through the tent','Stake down the corners','Attach the rainfly','Toss the sleeping bags inside','Zip the door shut']},
+  {theme:'Making Coffee', cat:'Food & Cooking', steps:['Fill the kettle with water','Grind the coffee beans','Put a filter in the maker','Add the grounds','Pour in the hot water','Wait for it to brew','Pour it into a mug','Add cream or sugar']},
+  {theme:'Walking the Dog', cat:'Daily Routine', steps:['Grab the leash','Clip it to the collar','Head out the front door','Let the dog sniff around','Pick up after the dog','Head back home','Take off the leash','Give the dog some water']},
+  {theme:'Studying for a Test', cat:'Daily Routine', steps:['Gather your notes','Find a quiet spot','Review the material once','Make flashcards','Quiz yourself','Take a short break','Review the hard parts again','Get a good night\'s sleep']},
+  {theme:'Throwing a Birthday Party', cat:'Special Occasions', steps:['Send out invitations','Buy decorations','Order or bake the cake','Set up the decorations','Greet the guests as they arrive','Sing happy birthday','Cut the cake','Hand out party favors']},
+  {theme:'Going to the Beach', cat:'Outdoors', steps:['Pack the beach bag','Grab the sunscreen','Drive to the beach','Set up the umbrella and towels','Apply sunscreen','Go swim in the water','Eat a snack on the sand','Rinse off and pack up']},
+  {theme:'Getting a Haircut', cat:'Errands & Outings', steps:['Check in at the front desk','Wait for your name to be called','Sit down in the chair','Tell the stylist what you want','Get your hair washed','Get it cut and styled','Look in the mirror','Pay and tip']},
+  {theme:'Checking Into a Hotel', cat:'Errands & Outings', steps:['Walk up to the front desk','Give them your reservation name','Hand over your ID and card','Get your room key','Find the elevator','Go up to your floor','Unlock the room','Drop your bags on the bed']},
+  {theme:'Making Pancakes', cat:'Food & Cooking', steps:['Mix the dry ingredients','Whisk in the milk and eggs','Heat up the griddle','Butter the pan','Pour the batter into circles','Flip them when bubbles form','Stack them on a plate','Add syrup and butter']},
+  {theme:'Doing the Dishes', cat:'Home & Chores', steps:['Scrape the food scraps off','Fill the sink with soapy water','Wash each dish with a sponge','Rinse off the soap','Set them in the drying rack','Dry them with a towel','Put the dishes away','Wipe down the counter']},
+  {theme:'Planting a Garden', cat:'Outdoors', steps:['Pick a sunny spot','Turn over the soil','Add compost','Dig small holes','Plant the seeds or seedlings','Cover them with soil','Water them well','Check on them every day']},
+  {theme:'Building a Campfire', cat:'Outdoors', steps:['Clear a spot down to dirt','Gather kindling and sticks','Stack the kindling in a small pile','Add larger logs on top','Light the kindling','Blow gently to help it catch','Add more wood as it grows','Roast marshmallows over it']},
+  {theme:'Wrapping a Present', cat:'Special Occasions', steps:['Pick out the wrapping paper','Cut a piece big enough for the box','Fold the paper around the box','Tape down the edges','Fold in the ends','Tape those down too','Add a bow or ribbon','Write a name tag']},
+  {theme:'Doing a Job Interview', cat:'Errands & Outings', steps:['Research the company','Print out your resume','Pick out an outfit','Drive to the office','Check in at the front desk','Shake hands with the interviewer','Answer their questions','Send a thank-you email after']},
+  {theme:'Brushing Your Teeth', cat:'Daily Routine', steps:['Wet the toothbrush','Squeeze on the toothpaste','Brush the front teeth','Brush the back teeth','Brush your tongue','Spit it out','Rinse your mouth with water','Rinse off the toothbrush']},
+  {theme:'Building a Sandcastle', cat:'Outdoors', steps:['Pick a spot near the water','Dig up wet sand','Pack it into a bucket','Flip the bucket over','Carefully lift it off','Carve out windows and doors','Add shells for decoration','Dig a moat around it']},
+  {theme:'Assembling Furniture', cat:'Home & Chores', steps:['Open the box and lay out the pieces','Read through the instructions','Sort the screws and bolts','Attach the base pieces first','Add the side panels','Screw everything together','Check that it\'s sturdy','Stand it upright']},
+  {theme:'Getting a Table at a Restaurant', cat:'Errands & Outings', steps:['Walk up to the host stand','Give them your party size','Wait to be seated','Look over the menu','Order your food','Eat your meal','Ask for the check','Pay and leave a tip']},
+  {theme:'Doing Homework', cat:'Daily Routine', steps:['Clear off your desk','Take out your assignment','Read the instructions','Work through the problems','Check your answers','Pack it back in your bag','Put your bag by the door','Go do something fun']},
+  {theme:'Riding the Bus', cat:'Errands & Outings', steps:['Walk to the bus stop','Wait for the bus to arrive','Pay the fare or tap your card','Find a seat','Watch for your stop','Pull the cord or press the button','Walk to the doors','Step off the bus']},
+];
+
+const ODDBALL_SETS = [
+  {label:'Animals with fins that live underwater', items:['Shark','Dolphin','Whale','Salmon','Tuna'], odd:'Bat'},
+  {label:'Fruits', items:['Apple','Banana','Mango','Grape','Pear'], odd:'Carrot'},
+  {label:'Things that fly', items:['Airplane','Bird','Kite','Helicopter','Drone'], odd:'Submarine'},
+  {label:'Things invented before 1900', items:['The Printing Press','The Telephone','The Steam Engine','The Piano','The Telescope'], odd:'The Smartphone'},
+  {label:'Cold places', items:['Antarctica','Alaska','Siberia','Iceland','Greenland'], odd:'The Sahara Desert'},
+  {label:'Things found in a kitchen', items:['Spatula','Blender','Oven Mitt','Cutting Board','Whisk'], odd:'Wrench'},
+  {label:'Fictional characters who can fly', items:['Superman','Peter Pan','Dumbo','Mary Poppins','Iron Man'], odd:'Sherlock Holmes'},
+  {label:'Countries in Europe', items:['France','Germany','Portugal','Sweden','Poland'], odd:'Morocco'},
+  {label:'Things that are typically round', items:['Basketball','Pizza','Coin','Wheel','Orange'], odd:'Ladder'},
+  {label:'Jobs that wear a uniform', items:['Firefighter','Pilot','Chef','Police Officer','Referee'], odd:'Freelance Writer'},
+  {label:'Vegetables', items:['Broccoli','Carrot','Spinach','Potato','Onion'], odd:'Strawberry'},
+  {label:'Things that are cold', items:['Ice Cream','Snow','Popsicle','Refrigerator','Winter'], odd:'Campfire'},
+  {label:'Things with wheels', items:['Bicycle','Car','Skateboard','Shopping Cart','Wagon'], odd:'Sailboat'},
+  {label:'Board games', items:['Monopoly','Chess','Scrabble','Clue','Sorry'], odd:'Poker'},
+  {label:'Things that are sticky', items:['Honey','Glue','Tape','Syrup','Gum'], odd:'Sandpaper'},
+  {label:'Musical instruments', items:['Guitar','Piano','Violin','Drums','Flute'], odd:'Camera'},
+  {label:'Things found in a classroom', items:['Desk','Chalkboard','Textbook','Backpack','Pencil'], odd:'Stove'},
+  {label:'Winter sports', items:['Skiing','Snowboarding','Ice Skating','Hockey','Sledding'], odd:'Surfing'},
+  {label:'Things that are loud', items:['Fireworks','Thunder','Rock Concert','Jet Engine','Alarm'], odd:'Library'},
+  {label:'Things you wear on your feet', items:['Sneakers','Boots','Sandals','Socks','Flip Flops'], odd:'Gloves'},
+  {label:'Fictional wizards', items:['Harry Potter','Gandalf','Merlin','Dumbledore','Doctor Strange'], odd:'Batman'},
+  {label:'Desserts', items:['Cake','Pie','Ice Cream','Cookies','Brownies'], odd:'Salad'},
+  {label:'Things found at a beach', items:['Sand','Seashell','Umbrella','Surfboard','Waves'], odd:'Snowman'},
+  {label:'Big cats', items:['Lion','Tiger','Leopard','Cheetah','Jaguar'], odd:'Wolf'},
+  {label:'Things that glow', items:['Firefly','Lightbulb','Glow Stick','Star','Neon Sign'], odd:'Brick'},
+  {label:'US states', items:['Texas','Florida','California','Ohio','Georgia'], odd:'Toronto'},
+  {label:'Things you find in a first aid kit', items:['Band-Aid','Gauze','Antiseptic','Tweezers','Scissors'], odd:'Hammer'},
+  {label:'Things that are square', items:['Waffle','Checkerboard','Picture Frame','Window','Post-it Note'], odd:'Basketball'},
+  {label:'Reptiles', items:['Snake','Lizard','Turtle','Crocodile','Iguana'], odd:'Frog'},
+  {label:'Things found in a toolbox', items:['Hammer','Screwdriver','Wrench','Pliers','Tape Measure'], odd:'Spatula'},
+  {label:'Breakfast foods', items:['Pancakes','Cereal','Bacon','Eggs','Toast'], odd:'Spaghetti'},
+  {label:'Things with strings', items:['Guitar','Kite','Yo-Yo','Puppet','Violin'], odd:'Drum'},
+  {label:'Things that are transparent', items:['Glass','Water','Ice','Window','Plastic Wrap'], odd:'Brick'},
+  {label:'Farm animals', items:['Cow','Pig','Chicken','Sheep','Horse'], odd:'Elephant'},
+  {label:'Things you find at a birthday party', items:['Balloons','Cake','Presents','Candles','Party Hat'], odd:'Textbook'},
+  {label:'Things that are striped', items:['Zebra','Barber Pole','Referee Jersey','Candy Cane','Bee'], odd:'Cloud'},
+  {label:'Ways to cook an egg', items:['Scrambled','Fried','Boiled','Poached','Over Easy'], odd:'Grilled'},
+  {label:'Things found in outer space', items:['Star','Planet','Comet','Asteroid','Moon'], odd:'Coral Reef'},
+  {label:'Types of hats', items:['Baseball Cap','Beanie','Top Hat','Cowboy Hat','Beret'], odd:'Sandal'},
+  {label:'Things that come in pairs', items:['Shoes','Gloves','Earrings','Chopsticks','Dice'], odd:'Hat'},
+];
+
+const ALIBI_EVENTS = [
+  {title:'Someone broke a priceless statue during a party.', guiltyAction:'broke the statue',
+   secrets:['stole a bottle of wine from the cabinet','lied about being at the party at all','broke a wine glass earlier and hid the pieces','was secretly dating someone else at the party','skipped work to be there','ate the last slice of cake and blamed the dog']},
+  {title:'Someone let the office goldfish escape its tank.', guiltyAction:'let the goldfish escape',
+   secrets:['took an extra long lunch break without telling anyone','used the office printer for a personal project','forgot to feed the fish for a week','ate someone else\'s labeled lunch from the fridge','was actually not scheduled to work that day','left the office fridge door open all night']},
+  {title:'Someone spoiled the ending of the movie for the whole group.', guiltyAction:'spoiled the ending',
+   secrets:['snuck in outside food','fell asleep for part of the movie','texted through the whole thing','cut in the concession line','sat in the wrong seats on purpose','forgot to silence their phone, twice']},
+  {title:'Someone ate the last slice of pizza that was saved for the birthday kid.', guiltyAction:'ate the last slice',
+   secrets:['finished someone else\'s leftovers without asking','snuck a second dessert earlier','blamed the dog for a mess they made','was actually not that hungry, so it wasn\'t about food','ordered a separate secret pizza for themselves','forgot to save a slice on purpose']},
+  {title:'Someone scratched the paint on the family car.', guiltyAction:'scratched the car',
+   secrets:['borrowed the car without asking earlier','was secretly learning to drive without a license','parked badly and didn\'t want to admit it','was on their phone while walking through the garage','left a bike leaning against the car','was late and rushing through the driveway']},
+  {title:'Someone unplugged the router during the big game.', guiltyAction:'unplugged the router',
+   secrets:['was secretly rooting for the other team','snuck off to take a phone call','was mad about losing an earlier bet','tripped over the cord by accident','was trying to charge their phone','wanted everyone to pay attention to them instead']},
+  {title:'Someone let the dog out and it ran off for an hour.', guiltyAction:'let the dog out',
+   secrets:['left the gate open earlier that day','was supposed to be watching the dog and wasn\'t','fed the dog people food it\'s not supposed to have','was on the phone and not paying attention','let the dog sleep on the furniture and didn\'t admit it','forgot to walk the dog that morning']},
+  {title:'Someone used up all the hot water before everyone else showered.', guiltyAction:'used up all the hot water',
+   secrets:['took an extra long shower to avoid a conversation','was secretly getting ready for a date nobody knew about','used someone else\'s shampoo without asking','left the bathroom a mess','was avoiding chores by hiding in there','sang loudly in the shower and hoped nobody heard']},
+  {title:'Someone left the gate to the pool unlocked overnight.', guiltyAction:'left the gate unlocked',
+   secrets:['snuck out for a late night swim','was avoiding a chore list taped to the fridge','let a friend in through the back without telling anyone','was on their phone instead of paying attention','forgot the code and propped it open','was supposed to lock up but got distracted']},
+  {title:'Someone ate the last cookie that was meant for the bake sale.', guiltyAction:'ate the last cookie',
+   secrets:['snuck a taste while "just checking" the batch','was hiding a stash of cookies in their room','blamed a sibling for eating snacks earlier','skipped dinner and was starving','forgot to bring their own contribution to the sale','swapped in a store-bought batch and hoped nobody noticed']},
+  {title:'Someone left the fridge door open all night and spoiled the groceries.', guiltyAction:'left the fridge open',
+   secrets:['was sneaking a midnight snack','was avoiding a conversation happening in the kitchen','was on the phone and got distracted','forgot to put groceries away earlier','was looking for something that wasn\'t theirs','left in a hurry to answer the door']},
+  {title:'Someone crashed the family drone into a tree.', guiltyAction:'crashed the drone',
+   secrets:['was secretly using it to spy on the neighbors','was showing off for someone and lost focus','had never actually flown it before','was texting while flying it','borrowed it without asking first','blamed the wind when it wasn\'t windy at all']},
+  {title:'Someone spilled red juice on the new carpet.', guiltyAction:'spilled the juice',
+   secrets:['was running through the house when they shouldn\'t have been','was trying to hide a snack they weren\'t supposed to have','was distracted arguing with someone on the phone','tried to clean it up and made it worse','blamed the cat for the spill','was sneaking the good cups nobody\'s allowed to use']},
+  {title:'Someone maxed out the thermostat and the electric bill spiked.', guiltyAction:'cranked the thermostat',
+   secrets:['was cold because they were avoiding wearing a sweater out of stubbornness','left a window open the whole time','was secretly drying wet laundry in their room','had friends over that nobody knew about','was trying to grow plants that needed heat','forgot to turn it back down after a nap']},
+  {title:'Someone broke the swing in the backyard.', guiltyAction:'broke the swing',
+   secrets:['was showing off a trick that went wrong','brought a friend over who wasn\'t supposed to be there','was jumping off it instead of swinging normally','ignored a warning sign about the weight limit','was supposed to be doing chores instead of playing','tried to fix it quietly and made it worse']},
+];
+
+const ROOMS = ['the Kitchen','the Living Room','the Hallway','the Backyard','the Bathroom','the Garage','the Dining Room','the Basement'];
+
+/* Category prompts the Guesser can ask in Wavelength — "Give me a ___" that everyone
+   who knows the number answers with something that fits that number 1 (low) to 10 (high). */
+const CATEGORY_PROMPTS = [
+  'Give me a Marvel movie', 'Give me a meal to eat for dinner', 'Give me a vacation destination',
+  'Give me a subject in school', 'Give me a Halloween costume', 'Give me a genre of music',
+  'Give me a fast food item', 'Give me a superhero', 'Give me a dance move', 'Give me a pet to own',
+  'Give me a sport', 'Give me an ice cream flavor', 'Give me a video game', 'Give me a job',
+  'Give me a place to hang out', 'Give me a drink', 'Give me a TV show', 'Give me a type of candy',
+  'Give me a hobby', 'Give me a car', 'Give me a city to visit', 'Give me an animal',
+  'Give me a book genre', 'Give me a holiday', 'Give me a dessert', 'Give me a workout',
+  'Give me an app on your phone', 'Give me a board game', 'Give me a shoe brand', 'Give me a breakfast food',
+  'Give me a party theme', 'Give me a first date idea', 'Give me a chore to do around the house',
+  'Give me a way to spend a Saturday', 'Give me a fear people have', 'Give me a New Year\'s resolution',
+  'Give me a pizza topping', 'Give me a Disney movie', 'Give me a fashion trend', 'Give me a social media app',
+  'Give me a horror movie', 'Give me a rom-com movie', 'Give me an action movie', 'Give me a season of the year',
+  'Give me a musical instrument', 'Give me a country to visit', 'Give me a fruit', 'Give me a dog breed',
+  'Give me a fictional character', 'Give me an excuse for being late', 'Give me a nickname', 'Give me a superstition',
+  'Give me a way to relax', 'Give me a gift for a birthday', 'Give me a school lunch item', 'Give me a road trip snack',
+  'Give me a summer activity', 'Give me a winter activity', 'Give me a household appliance', 'Give me a type of weather',
+  'Give me a celebrity', 'Give me a sitcom', 'Give me a soda flavor', 'Give me a type of sandwich',
+];
+
+const QUESTION_PROMPTS = [
+  'Ask the person on your left to describe their info in one word.',
+  'Ask someone who they\'d vote for right now, and why.',
+  'Point at someone and give them 10 seconds to defend themselves.',
+  'Ask the quietest person what they think is going on.',
+  'Ask someone to repeat what they just said, word for word.',
+  'Ask two people to compare notes out loud.',
+  'Ask someone what would change their mind.',
+  'Call out anyone who hasn\'t said much yet.',
+  'Ask someone to rate how confident they are, 1 to 10.',
+  'Ask the last person to speak to explain themselves again.',
+  'Ask someone if they\'d bet money on their own answer.',
+  'Ask someone to describe their info without repeating any word they already used.',
+  'Ask two people who seem suspicious of each other why.',
+  'Ask someone what tipped them off, if anything.',
+  'Ask the group who\'s been quietest and make them talk.',
+  'Ask someone to guess what someone else has, out loud.',
+  'Ask if anyone has changed their mind in the last minute.',
+  'Ask someone to defend the person they think is innocent.',
+  'Ask someone what question they\'re avoiding.',
+  'Ask the group to go around and share one suspicion each.',
+];
+
+const SPICE_EVENTS = [
+  {name:'DOUBLE AGENT', emoji:'🔥', text:'Two players in this round secretly know each other\'s information. They don\'t know who the other one is.'},
+  {name:'MIRROR', emoji:'🪞', text:'Two players may have accidentally received each other\'s information. Or did they?'},
+  {name:'SILENCE', emoji:'🔇', text:'One random player currently cannot speak. They must communicate only with gestures for 20 seconds.'},
+  {name:'MEMORY CHECK', emoji:'🧠', text:'Everyone: silently recall the very first clue or detail someone mentioned out loud. You\'ll want to remember it.'},
+  {name:'ACCUSATION', emoji:'🎯', text:'Someone must make an accusation out loud right now, before discussion continues.'},
+  {name:'CHAOS RULE', emoji:'🤡', text:'For the rest of this round, nobody is allowed to say the word "know."'},
+];
+
+const MODES = [
+  {id:'secret', emoji:'🕵️', name:'The Secret', desc:'Everyone gets a different piece of info about a hidden topic (a movie, place, animal...). One player gets nothing and must bluff. Goal: vote for the player who knew nothing.',
+   detail:'Everyone passes one phone around. Almost everyone secretly sees the exact same word (like "Pizza" or "Basketball") — except one player (or two, at higher chaos), who sees nothing at all.\n\nDuring discussion, describe or ask about the word without ever saying it out loud. The blank player has to bluff their way through, listening for clues to guess what the word might be.\n\nThen everyone votes for who they think didn\'t know the word. Guess right as a group and you win points. If the blank player is caught, they get one last shot: guess the real word from a multiple-choice list. Guess right and they still win, even after being caught.'},
+  {id:'werewolf', emoji:'🐺', name:'One Night', desc:'Inspired by One Night Werewolf. Everyone gets a role — Seer, Robber, Troublemaker and more — but 3 extra cards sit unclaimed in the middle, so the Werewolf might not even be in play. Great for small groups too.',
+   detail:'Each player is secretly dealt one role, but 3 extra cards are left face-down "in the middle," belonging to nobody. There\'s always at least one Werewolf card in the game, but about 1 in 5 rounds it ends up in the middle instead of in anyone\'s hands — a totally peaceful night.\n\nDuring the night phase, roles act in order: Werewolves see each other (or peek at a middle card if they\'re alone); the Seer secretly views another player\'s role or two middle cards; the Robber swaps roles with someone and sees their new role; the Troublemaker blindly swaps two other players\' roles without looking.\n\nWhat a player believes about themselves can go stale if someone swaps them without their knowledge — that\'s where the real mystery comes from. After the night, everyone discusses and votes for who they think is the Werewolf — or votes "Nobody" if they believe it was a peaceful night. The full reveal shows every role, every swap, and the truth.'},
+  {id:'mole', emoji:'🎭', name:'The Mole', desc:'Everyone but one player gets a real step from an everyday activity (like "buy popcorn") — nobody knows the activity up front. Piece it together. Even if caught, the Mole can win by guessing the activity.',
+   detail:'A real, everyday activity is chosen (like "Going to the Movies" or "Making a Sandwich") — but nobody is told what it is. Instead, every player except one Mole gets a single real step from that activity, in a random order (like "Buy popcorn" or "Find your seats").\n\nDuring discussion, share your step and try to work out both what the activity is and the correct order of steps as a group. The Mole has no real step at all and has to invent something plausible-sounding on the spot, hoping it fits wherever the group lands.\n\nVote for who you think is the Mole. If they\'re caught, they get one last shot to guess the real activity from a multiple-choice list — guess right and they still win.'},
+  {id:'oddball', emoji:'🧩', name:"Who Doesn't Belong", desc:'Everyone gets a secret word from a hidden category — except one player, whose word is from somewhere else entirely. Ask indirect questions to find them. Even if caught, they can win by guessing the category.',
+   detail:'Everyone gets a secret word. Most players\' words share a hidden category (like "Fruits" or "Things that fly") that nobody is told directly — one player\'s word comes from somewhere else entirely.\n\nYou can never say your word out loud. Instead, take turns asking each other indirect questions ("would you find this in a kitchen?", "is it alive?") to work out what the category might be and spot whose word doesn\'t fit.\n\nVote for whoever you think has the odd word out. If they\'re caught, they get a last shot to guess the hidden category from a multiple-choice list — guess right and they still win.'},
+  {id:'alibi', emoji:'🔎', name:'The Alibi', desc:'One player is guilty and has no real alibi. Everyone else really was somewhere, and some truthfully saw each other there — so real answers should line up, and a made-up one might not.',
+   detail:'Something happened (a broken statue, a spoiled movie ending...). One player is secretly guilty, and everyone else is innocent.\n\nEach innocent player is really assigned a room they were in, and some of them are truthfully told they saw another innocent player in a specific room too — so their stories can genuinely be cross-checked against each other. Everyone (innocent or not) also has an unrelated embarrassing secret, so looking suspicious doesn\'t automatically mean someone\'s guilty.\n\nThe guilty player has no real room assigned — they have to invent an alibi on the spot, and it might not hold up under questioning. Vote for who you think is actually guilty. If caught, they get a last shot: guess which room a specific witness was really in.'},
+  {id:'wavelength', emoji:'📡', name:'Wavelength', desc:'Inspired by the party game Wavelength. One player is the Guesser and everyone else secretly knows the same number from 1-10. The Guesser asks a category, gets answers, and tries to guess the number — no voting, no impostor.', excludeFromRandom:true,
+   detail:'This round, one player is publicly announced as the Guesser. Everyone else privately sees the exact same secret number from 1 to 10 — nothing else.\n\nOnce everyone knows the number, the phone goes to the Guesser, who picks a category to ask the group out loud (like "give me a Marvel movie" or "give me a meal to eat for dinner"). Going around, everyone who knows the number gives an answer they think fits that number on a 1 (worst/least) to 10 (best/most) scale for that category — for example, if the number is 8, someone asked for a Marvel movie might name one they consider really good but maybe not the best ever.\n\nAfter hearing everyone\'s answers, the Guesser uses a slider to lock in their best guess of the secret number. The closer the guess, the more points everyone earns together. There\'s no impostor and no voting — just a fun shared guessing game.'},
+];
+
+/* ============================= ROUND GENERATORS ============================= */
+function pickUnique(pool, sigPrefix){
+  let tries=0, item;
+  do{ item=pool[Math.floor(Math.random()*pool.length)]; tries++; }
+  while(isRecent(sigPrefix+'|'+ (item.truth||item.title||item.label)) && tries<pool.length*2);
+  pushRecent(sigPrefix+'|'+(item.truth||item.title||item.label));
+  return item;
+}
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function genSecretRound(players){
+  // Pick one word, avoiding recent repeats. With ~1900 words this rarely collides.
+  let cat, word, sig, tries=0;
+  do{
+    cat = WORD_BANK[Math.floor(Math.random()*WORD_BANK.length)];
+    word = cat.words[Math.floor(Math.random()*cat.words.length)];
+    sig = 'secret|'+word;
+    tries++;
+  } while(isRecent(sig) && tries<50);
+  pushRecent(sig);
+
+  const order = shuffle(players);
+  const n = order.length;
+  // Everyone knows the same word except 1 (or occasionally more, at higher chaos) blank player(s).
+  let blankCount = 1;
+  if(S.chaosLevel==='chaos') blankCount = Math.max(1, Math.floor(n/5));
+  else if(S.chaosLevel==='normal' && n>=8) blankCount = 2;
+  blankCount = Math.min(blankCount, Math.max(1, n-2)); // always leave at least 2 players who know it
+
+  const blanks = order.slice(0, blankCount).map(p=>p.id);
+  const info = {};
+  order.forEach(p=>{
+    if(blanks.includes(p.id)){
+      info[p.id] = {title:"⚠️ You're the Blank", body:'???', note:'You don\'t know the word — everyone else secretly knows the same one. Listen closely, ask vague questions, and bluff your way through without getting caught.'};
+    } else {
+      info[p.id] = {title:'Your secret word:', body: word, note:'Talk about it — describe it, ask about it — but never say the word itself. Try to spot whoever doesn\'t actually know it.'};
+    }
+    if(settings.categoryHints){ info[p.id].category = cat.name; }
+  });
+  const plural = blanks.length>1;
+  const catWords = cat.words.filter(w=>w!==word);
+  const decoyPool = catWords.length>=3 ? catWords : WORD_BANK.flatMap(c=>c.words).filter(w=>w!==word);
+  const decoys = shuffle(decoyPool).slice(0,3);
+  return {
+    mode:'secret', category:cat.name, truthLabel:word,
+    info, targets:blanks, targetLabel: plural ? 'the players who didn\'t know the word' : 'the player who didn\'t know the word',
+    revealNote:`The secret word was "${word}" (${cat.name}).`,
+    hint:`Everyone except ${plural? blanks.length+' players' : 'one player'} knows the same secret word. Talk about it without ever saying it out loud — the blank player has to bluff and guess it purely from context.`,
+    redemption: { question:'If caught, quick — what was the secret word?', correct: word, options: shuffle([word, ...decoys]) },
+  };
+}
+
+function genWerewolfRound(players){
+  const n = players.length;
+  const order = shuffle(players);
+  const ww = n<=5 ? 1 : (n<=9 ? 2 : 3);
+  // Deck always has n+3 cards: the extra 3 sit face-down "in the middle" and belong to nobody.
+  // Seer/Robber/Troublemaker are always in the deck (even in tiny games) so there's always real
+  // info and real swaps to reason about. We deliberately weight the deal so a Werewolf lands
+  // on a player ~80% of the time — a peaceful night (no Werewolf in play) is the rare twist,
+  // not a coin flip.
+  const deckSize = n+3;
+  const wolfCards = Array(ww).fill('Werewolf');
+  let base = ['Seer','Robber','Troublemaker']; // everything except Werewolf cards
+  const villagerCount = Math.max(0, deckSize - ww - base.length);
+  for(let i=0;i<villagerCount;i++) base.push('Villager');
+  base = shuffle(base);
+
+  const wolfInPlay = Math.random() < 0.8;
+  let center, playerPool;
+  if(wolfInPlay){
+    center = base.slice(0,3);
+    playerPool = shuffle([...base.slice(3), ...wolfCards]);
+  } else {
+    const fillCount = Math.max(0, 3-ww);
+    center = shuffle([...wolfCards, ...base.slice(0,fillCount)]);
+    playerPool = shuffle(base.slice(fillCount));
+  }
+
+  const originalRoles = {}, currentRoles = {};
+  order.forEach((p,i)=>{ originalRoles[p.id]=playerPool[i]; currentRoles[p.id]=playerPool[i]; });
+
+  const byRole = r => order.filter(p=>originalRoles[p.id]===r).map(p=>p.id);
+  const passOrder = [...byRole('Werewolf'), ...byRole('Seer'), ...byRole('Robber'), ...byRole('Troublemaker'), ...shuffle(byRole('Villager'))];
+
+  const info = {};
+  byRole('Villager').forEach(id=>{
+    info[id] = {title:'Your role: VILLAGER', body:'You have no special power.', note:'Just listen carefully and vote based on what people say and do.'};
+  });
+
+  return {
+    mode:'werewolf', category:'Village', truthLabel:'One Night',
+    info, targets:[], targetLabel: ww>1 ? 'the Werewolves' : 'the Werewolf',
+    allowSkipVote:true, wwDeckCount:ww,
+    revealNote:'', hint:`Everyone was secretly dealt one role, but 3 extra cards were left face-down in the middle that nobody holds. There ${ww>1?`are ${ww} Werewolf cards`:'is 1 Werewolf card'} in this game — most of the time it's in someone's hands, but every so often it's sitting in the middle instead. Some roles peeked at real info or swapped cards during the night, so what a player believes about themselves might already be out of date. Talk it out and decide: is there a Werewolf to catch, or was it a peaceful night?`,
+    originalRoles, currentRoles, passOrder, nightLog:[], center, wolfCenterPeekIndex: Math.floor(Math.random()*3),
+  };
+}
+
+function genMoleRound(players){
+  const mission = pickUnique(MOLE_MISSIONS,'mole');
+  const order = shuffle(players);
+  const info={};
+  const moleId = order[order.length-1].id;
+  const innocents = order.slice(0,-1);
+  const stepsShuffled = shuffle(mission.steps);
+  innocents.forEach((p,i)=>{
+    info[p.id] = {title:'Your step:', body: stepsShuffled[i % stepsShuffled.length], note:'This is one real step from a real everyday activity — everyone who isn\'t the Mole has one. Nobody\'s told what the activity is; figure it out together and try to put the steps in order.'};
+  });
+  info[moleId] = {title:'⚠️ You\'re the Mole', body:'You don\'t have a real step.', note:'Everyone else has one real step from the same everyday activity — you don\'t know what it is. Invent a plausible-sounding step and try not to give yourself away when the order doesn\'t add up.'};
+  if(settings.categoryHints){ order.forEach(p=>{ info[p.id].category = mission.cat; }); }
+
+  const decoyThemes = shuffle(MOLE_MISSIONS.filter(m=>m.theme!==mission.theme)).slice(0,2).map(m=>m.theme);
+  return {
+    mode:'mole', category:'Mission', truthLabel: mission.theme,
+    info, targets:[moleId], targetLabel:'the Mole',
+    revealNote:`The activity was: ${mission.theme}\n\nIn order: ${mission.steps.join(' → ')}`,
+    hint:`Everyone except the Mole has one real step from the same everyday activity — nobody's told what it is up front. Share your steps, try to piece together the order, and figure out both what the activity is and who's faking their step.`,
+    redemption: { question:'If caught, quick — what was the real activity?', correct: mission.theme, options: shuffle([mission.theme, ...decoyThemes]) },
+  };
+}
+
+function genOddballRound(players){
+  const set = pickUnique(ODDBALL_SETS,'odd');
+  const order = shuffle(players);
+  const info={};
+  const oddId = order[order.length-1].id;
+  const itemsShuffled = shuffle(set.items);
+  order.forEach((p,i)=>{
+    if(p.id===oddId){
+      info[p.id] = {title:'⚠️ Your word (you\'re the odd one out)', body:set.odd, note:'You don\'t share the group\'s hidden category. Answer questions vaguely and try to blend in — never say your word out loud.'};
+    } else {
+      info[p.id] = {title:'Your secret word:', body: itemsShuffled[i % itemsShuffled.length], note:'Most players share a hidden category that connects their words. Never say your word out loud — describe it instead.'};
+    }
+  });
+  const decoyCats = shuffle(ODDBALL_SETS.filter(s=>s.label!==set.label)).slice(0,2).map(s=>s.label);
+  return {
+    mode:'oddball', category:'Hidden Category', truthLabel: set.label,
+    info, targets:[oddId], targetLabel:'the player whose word doesn\'t fit',
+    revealNote:`The hidden category was: ${set.label}. The odd word was "${set.odd}."`,
+    hint:`Everyone has a secret word. Most words fit a hidden category — nobody's been told what it is. Take turns asking each other indirect questions about your word (e.g. "would you find it in a store?", "is it alive?") without ever saying the word itself. Try to work out the category and spot whichever word doesn\'t belong.`,
+    redemption: { question:'If caught, quick — what was the hidden category?', correct: set.label, options: shuffle([set.label, ...decoyCats]) },
+  };
+}
+
+function genAlibiRound(players){
+  const ev = pickUnique(ALIBI_EVENTS,'alibi');
+  const order = shuffle(players);
+  const info={};
+  const guiltyId = order[order.length-1].id;
+  const innocents = order.slice(0,-1);
+  const roomAssignment = {};
+  innocents.forEach(p=>{ roomAssignment[p.id] = ROOMS[Math.floor(Math.random()*ROOMS.length)]; });
+  const secretsShuffled = shuffle(ev.secrets);
+  innocents.forEach((p,i)=>{
+    const others = innocents.filter(x=>x.id!==p.id);
+    let sightingText = '';
+    if(others.length){
+      const seen = others[Math.floor(Math.random()*others.length)];
+      sightingText = ` You also saw ${seen.name} in ${roomAssignment[seen.id]}.`;
+    }
+    const secret = secretsShuffled[i % secretsShuffled.length];
+    info[p.id] = {title:'Your alibi:', body:`You were in ${roomAssignment[p.id]}.${sightingText}`, note:`You're also secretly ${secret}. It has nothing to do with the incident — but it looks bad if it comes out.`};
+  });
+  info[guiltyId] = {title:'⚠️ You\'re Guilty — No Alibi', body:`You ${ev.guiltyAction}.`, note:'You have no real alibi — invent a room you were in, and be ready if someone asks who else was around. Try not to contradict what others say.'};
+
+  const witness = innocents[Math.floor(Math.random()*innocents.length)];
+  const correctRoom = roomAssignment[witness.id];
+  const decoyRooms = shuffle(ROOMS.filter(r=>r!==correctRoom)).slice(0,2);
+  return {
+    mode:'alibi', category:'The Incident', truthLabel: ev.title,
+    info, targets:[guiltyId], targetLabel:'the guilty player',
+    revealNote:`What happened: ${ev.title}\n\nWhere everyone really was: ${innocents.map(p=>`${p.name} — ${roomAssignment[p.id]}`).join(', ')}.`,
+    hint:`Something happened. One player is guilty and has no real alibi — they'll have to invent a room on the spot. Everyone else really was somewhere, and some of them truthfully saw each other there. Ask where people were and who saw whom — real answers should line up with each other; a made-up one might not.`,
+    redemption: { question:`If caught, quick — which room was ${witness.name} really in?`, correct: correctRoom, options: shuffle([correctRoom, ...decoyRooms]) },
+  };
+}
+
+function nextWavelengthGuesser(players){
+  // Rotate through players in a fixed order (their current list order) so nobody guesses
+  // twice in a row and nobody gets skipped — e.g. 1,2,3,1,2,3... never 1,2,1,3.
+  if(S.wlLastGuesserId){
+    const idx = players.findIndex(p=>p.id===S.wlLastGuesserId);
+    if(idx!==-1){ return players[(idx+1)%players.length]; }
+  }
+  return players[Math.floor(Math.random()*players.length)];
+}
+
+function genWavelengthRound(players){
+  const guesser = nextWavelengthGuesser(players);
+  S.wlLastGuesserId = guesser.id;
+  const number = 1 + Math.floor(Math.random()*10);
+  const info = {};
+  players.forEach(p=>{
+    if(p.id!==guesser.id){
+      info[p.id] = {title:'The number is:', body: String(number), note:'Nothing else — just the number. When the Guesser asks a category, give an answer that fits this number from 1 (low) to 10 (high).'};
+    }
+  });
+  const passOrder = shuffle(players.filter(p=>p.id!==guesser.id)).map(p=>p.id);
+  const promptChoices = shuffle(CATEGORY_PROMPTS).slice(0,4);
+  return {
+    mode:'wavelength', category:'Wavelength', truthLabel: String(number),
+    guesserId: guesser.id, number, info, passOrder, promptChoices, chosenPrompt:null,
+  };
+}
+
+const GENERATORS = { secret:genSecretRound, werewolf:genWerewolfRound, mole:genMoleRound, oddball:genOddballRound, alibi:genAlibiRound, wavelength:genWavelengthRound };
+
+function generateRound(){
+  let modeId = S.selectedMode;
+  if(!modeId){
+    const pool = MODES.filter(m=>!m.excludeFromRandom).map(m=>m.id);
+    modeId = pool[Math.floor(Math.random()*pool.length)];
+  }
+  const round = GENERATORS[modeId](S.players);
+  round.modeName = MODES.find(m=>m.id===round.mode).name;
+  // maybe attach a spice event (unused by wavelength, harmless either way)
+  let spiceChance = S.chaosLevel==='low'?0.08 : S.chaosLevel==='chaos'?0.55 : 0.28;
+  round.spice = Math.random()<spiceChance ? SPICE_EVENTS[Math.floor(Math.random()*SPICE_EVENTS.length)] : null;
+  // a few conversation-starter prompts for modes with a discussion phase (not wavelength)
+  if(round.mode!=='wavelength'){ round.discussionPrompts = shuffle(QUESTION_PROMPTS).slice(0,3); }
+  return round;
+}
+
+/* ============================= RENDER HELPERS ============================= */
+const app = document.getElementById('app');
+let lastRenderedScreen = null;
+function render(){
+  const screenChanged = S.screen !== lastRenderedScreen;
+  app.innerHTML=''; app.appendChild(renderMenuBar()); SCREENS[S.screen]();
+  if(screenChanged) window.scrollTo(0,0); // only jump to top when actually moving to a new screen
+  lastRenderedScreen = S.screen;
+}
+
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls)e.className=cls; if(html!==undefined)e.innerHTML=html; return e; }
+
+/* Persistent, non-overlapping 3-dot menu — its own slim row above every screen's own header,
+   so it never sits on top of a back arrow, counter, or anything else a screen already renders. */
+function renderMenuBar(){
+  const bar = el('div'); bar.style.cssText='display:flex;justify-content:flex-end;margin-bottom:6px;';
+  const btn = el('button','iconbtn','⋮'); btn.style.cssText='width:32px;height:32px;font-size:18px;color:var(--ink-faint);';
+  btn.onclick=()=>{ sfx.tick(); openAppMenu(); };
+  bar.appendChild(btn);
+  return bar;
+}
+function openAppMenu(){
+  const overlay = el('div','spice-flash'); overlay.style.zIndex='80';
+  overlay.onclick=(e)=>{ if(e.target===overlay) overlay.remove(); };
+  const card = el('div','card'); card.style.cssText='width:100%;max-width:320px;text-align:left;';
+  const h = el('div','disp','Menu'); h.style.cssText='font-weight:700;font-size:18px;margin-bottom:14px;text-align:center;';
+  card.appendChild(h);
+  const btns = el('div','stack');
+  const resume = el('button','btn btn-secondary','▶️ Resume');
+  resume.onclick=()=>{ overlay.remove(); };
+  const mainMenu = el('button','btn btn-secondary','🏠 Main Menu');
+  mainMenu.onclick=()=>{ overlay.remove(); S.screen='menu'; render(); };
+  const settingsBtn = el('button','btn btn-secondary','⚙️ Settings');
+  settingsBtn.onclick=()=>{ overlay.remove(); S.screen='settings'; render(); };
+  const quit = el('button','btn btn-danger','🚪 Quit Game');
+  quit.onclick=()=>{
+    overlay.remove();
+    if(S.players.length){ stats.gamesPlayed++; saveStats(); }
+    resetGameState(); S.screen='menu'; render();
+  };
+  btns.appendChild(resume); btns.appendChild(mainMenu); btns.appendChild(settingsBtn); btns.appendChild(quit);
+  card.appendChild(btns);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
+function avatarEl(name, idx){
+  const pair = AVATAR_PAIRS[idx % AVATAR_PAIRS.length];
+  const a = el('div','avatar', initials(name));
+  a.style.setProperty('--av1',pair[0]); a.style.setProperty('--av2',pair[1]);
+  return a;
+}
+function topbar(title, onBack, right){
+  const t = el('div','topbar');
+  if(onBack){
+    const b = el('button','iconbtn','←'); b.onclick=()=>{ sfx.tick(); onBack(); };
+    t.appendChild(b);
+  } else { t.appendChild(el('div')); }
+  const mid = el('div','disp',title); mid.style.cssText='font-weight:700;font-size:15px;color:var(--ink-dim);letter-spacing:.02em;';
+  t.appendChild(mid);
+  t.appendChild(right ? right : el('div'));
+  return t;
+}
+
+/* ============================= SCREENS ============================= */
+const SCREENS = {};
+
+SCREENS.menu = function(){
+  const s = el('div','screen');
+  const top = el('div'); top.style.cssText='display:flex;justify-content:flex-end;';
+  const gear = el('button','iconbtn','⚙️'); gear.onclick=()=>{ S.screen='settings'; render(); };
+  top.appendChild(gear); s.appendChild(top);
+
+  const hero = el('div'); hero.style.cssText='flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:6px;';
+  hero.appendChild(el('div','eyebrow','ONE PHONE · SOCIAL DEDUCTION'));
+  const h1 = el('h1','title'); h1.style.cssText='font-size:44px;letter-spacing:-.02em;'; h1.textContent='WHO KNOWS?';
+  hero.appendChild(h1);
+  hero.appendChild(el('p','sub','Everyone knows something.<br>Nobody knows everything.'));
+  s.appendChild(hero);
+
+  const btns = el('div','stack'); btns.style.marginTop='10px';
+  const play = el('button','btn btn-primary','🎮 &nbsp;Play');
+  play.onclick=()=>{ sfx.flip(); S.selectedMode=null; S.screen='setup'; S.setupFlow='full'; render(); };
+  const quick = el('button','btn btn-secondary','⚡ &nbsp;Quick Round');
+  quick.onclick=()=>{ sfx.flip(); S.selectedMode=null; S.chaosLevel='normal'; S.discussionSeconds=180; S.screen='setup'; S.setupFlow='quick'; render(); };
+  const how = el('button','btn btn-secondary','❓ &nbsp;How to Play');
+  how.onclick=()=>{ S.tutIndex=0; S.screen='howto'; render(); };
+  const row2 = el('div','row');
+  const st = el('button','btn btn-secondary grow','🏆 Stats'); st.onclick=()=>{ S.screen='stats'; render(); };
+  const se = el('button','btn btn-secondary grow','⚙️ Settings'); se.onclick=()=>{ S.screen='settings'; render(); };
+  row2.appendChild(st); row2.appendChild(se);
+  btns.appendChild(play); btns.appendChild(quick); btns.appendChild(how); btns.appendChild(row2);
+  s.appendChild(btns);
+  app.appendChild(s);
+};
+
+/* ---- Player setup ---- */
+function loadLastNames(){
+  try{ const arr = JSON.parse(localStorage.getItem('wk_last_names')||'[]'); return Array.isArray(arr)?arr:[]; }catch(e){ return []; }
+}
+function saveLastNames(){
+  try{ localStorage.setItem('wk_last_names', JSON.stringify(S.players.map(p=>p.name))); }catch(e){}
+}
+function ensureMinPlayers(){
+  if(S.players.length===0){
+    const last = loadLastNames().filter(n=>n && n.trim());
+    if(last.length>=3){ S.players = last.map(n=>({id:uid(), name:n})); }
+    else { S.players = ['','',''].map((n,i)=>({id:uid(), name:''})); }
+  }
+}
+SCREENS.setup = function(){
+  ensureMinPlayers();
+  const s = el('div','screen');
+  s.appendChild(topbar('Players', ()=>{ S.screen='menu'; render(); }));
+  s.appendChild(el('h2','title','Who\'s playing?'));
+  s.appendChild(el('p','sub','Enter a name for each player. 3–16 players.'));
+
+  const list = el('div','stack'); list.id='playerlist';
+  S.players.forEach((p,i)=>{
+    const row = el('div','player-row');
+    row.appendChild(avatarEl(p.name||'?', i));
+    const input = document.createElement('input');
+    input.className='player-name-input'; input.placeholder=`Player ${i+1}`;
+    input.value=p.name; input.maxLength=16;
+    input.oninput=(e)=>{ p.name=e.target.value; row.firstChild.textContent = initials(p.name||'?'); updateContinueState(); };
+    row.appendChild(input);
+    if(S.players.length>3){
+      const rm = el('button','iconbtn','✕'); rm.style.cssText='width:32px;height:32px;font-size:14px;';
+      rm.onclick=()=>{ sfx.tick(); S.players.splice(i,1); render(); };
+      row.appendChild(rm);
+    }
+    list.appendChild(row);
+  });
+  s.appendChild(list);
+
+  const addRow = el('div'); addRow.style.marginTop='12px';
+  if(S.players.length<16){
+    const add = el('button','btn btn-secondary btn-sm','+ Add Player');
+    add.onclick=()=>{ sfx.tick(); S.players.push({id:uid(),name:''}); render(); };
+    addRow.appendChild(add);
+  }
+  s.appendChild(addRow);
+
+  if(S.players.length>=4){
+    const shuf = el('button','btn-ghost','🔀 Shuffle order'); shuf.style.marginTop='10px';
+    shuf.onclick=()=>{ sfx.tick(); S.players=shuffle(S.players); render(); };
+    s.appendChild(shuf);
+  }
+
+  const spacer = el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+
+  const cont = el('button','btn btn-primary','Continue →');
+  function updateContinueState(){
+    const filled = S.players.every(p=>p.name.trim().length>0);
+    const left = S.players.filter(p=>!p.name.trim()).length;
+    cont.textContent = filled ? 'Continue →' : `Enter all names (${left} left)`;
+    cont.disabled = !filled || S.players.length<3;
+  }
+  updateContinueState();
+  cont.onclick=()=>{
+    sfx.flip();
+    S.players.forEach(p=>p.name=p.name.trim());
+    S.score = {}; S.players.forEach(p=>S.score[p.id]=0);
+    saveLastNames();
+    if(S.setupFlow==='quick'){ startPassPhase(); }
+    else { S.screen='modeselect'; render(); }
+  };
+  s.appendChild(cont);
+  app.appendChild(s);
+};
+
+/* ---- Mode select (full flow) ---- */
+SCREENS.modeselect = function(){
+  const s = el('div','screen');
+  s.appendChild(topbar('Setup', ()=>{ S.screen='setup'; render(); }));
+  s.appendChild(el('h2','title','Choose a mode'));
+  s.appendChild(el('p','sub','Or let the game surprise you.'));
+
+  const list = el('div','stack');
+  const rnd = el('button','mode-card'+(S.selectedMode===null?' selected':''));
+  rnd.innerHTML = `<div class="mode-emoji">🎲</div><div><div class="mode-name">Surprise Me</div><div class="mode-desc">The game randomly picks a mode each round.</div></div>`;
+  rnd.onclick=()=>{ sfx.tick(); S.selectedMode=null; render(); };
+  list.appendChild(rnd);
+
+  MODES.forEach(m=>{
+    const c = el('button','mode-card'+(S.selectedMode===m.id?' selected':''));
+    c.innerHTML = `<div class="mode-emoji">${m.emoji}</div><div><div class="mode-name">${m.name}</div><div class="mode-desc">${m.desc}</div></div>`;
+    c.onclick=()=>{ sfx.tick(); S.selectedMode=m.id; render(); };
+    list.appendChild(c);
+  });
+  s.appendChild(list);
+
+  s.appendChild(el('h3','title', 'Chaos level')); s.lastChild.style.cssText='font-size:16px;margin-top:22px;';
+  const pills = el('div','pill-row');
+  [['low','🟢 Low'],['normal','🟡 Normal'],['chaos','🔴 Chaos']].forEach(([id,label])=>{
+    const p = el('button','pill'+(S.chaosLevel===id?' active':''),label);
+    p.onclick=()=>{ sfx.tick(); S.chaosLevel=id; render(); };
+    pills.appendChild(p);
+  });
+  s.appendChild(pills);
+
+  s.appendChild(el('h3','title','Discussion time')); s.lastChild.style.cssText='font-size:16px;margin-top:22px;';
+  const pills2 = el('div','pill-row');
+  [[120,'2 min'],[180,'3 min'],[300,'5 min'],[480,'8 min']].forEach(([sec,label])=>{
+    const p = el('button','pill'+(S.discussionSeconds===sec?' active':''),label);
+    p.onclick=()=>{ sfx.tick(); S.discussionSeconds=sec; render(); };
+    pills2.appendChild(p);
+  });
+  s.appendChild(pills2);
+
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  const start = el('button','btn btn-primary','Start Round →'); start.style.marginTop='20px';
+  start.onclick=()=>{ sfx.flip(); startPassPhase(); };
+  s.appendChild(start);
+  app.appendChild(s);
+};
+
+/* ---- Pass phase: cycle through players to reveal secret ---- */
+function startPassPhase(){
+  S.round = generateRound();
+  S.revealIndex = 0;
+  S.revealed = {};
+  S.wwStage='intro'; S.wwSelected=[];
+  S.wlGuess=null; S.wlScored=false; S.wlNumRevealed=false; S.wlHoldDone=false;
+  if(S.round.mode==='werewolf') S.screen='wwreveal';
+  else if(S.round.mode==='wavelength') S.screen='wlannounce';
+  else S.screen='passreveal';
+  render();
+}
+
+SCREENS.passreveal = function(){
+  const s = el('div','screen');
+  const player = S.players[S.revealIndex];
+  const total = S.players.length;
+
+  s.appendChild(topbar(`Round Setup`, null, (()=>{ const d=el('div'); d.textContent=`${S.revealIndex+1}/${total}`; d.style.cssText='font-size:13px;color:var(--ink-faint);font-weight:700;'; return d;})()));
+
+  const wrap = el('div','pass-wrap');
+  if(!S.revealedNow){
+    wrap.appendChild(el('div','pass-icon','📱'));
+    wrap.appendChild(el('div','eyebrow','Pass the phone to'));
+    wrap.appendChild(el('div','pass-name', player.name));
+    wrap.appendChild(el('div','pass-hint','Make sure only you can see the screen, then tap below.'));
+    const tap = el('button','btn btn-primary', `I\'m ${player.name} — Reveal my secret`);
+    tap.style.marginTop='10px';
+    tap.onclick=()=>{ sfx.flip(); S.revealedNow=true; S.holdProgress=0; render(); };
+    wrap.appendChild(tap);
+  } else {
+    // secret privacy screen with hold-to-reveal
+    wrap.appendChild(el('div','eyebrow','🔒 Secret Info'));
+    wrap.appendChild(el('div','pass-hint','Make sure nobody else is looking.'));
+
+    if(!S.revealedShown){
+      const holdWrap = el('div'); holdWrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px;';
+      const hb = el('div','hold-btn');
+      hb.innerHTML = `<svg viewBox="0 0 100 100"><circle class="bg-ring" cx="50" cy="50" r="44"></circle><circle class="fg-ring" cx="50" cy="50" r="44" stroke-dasharray="276" stroke-dashoffset="276"></circle></svg><div class="hold-label">HOLD TO<br>REVEAL</div>`;
+      let holdTimer=null, startT=null; const DURATION=900;
+      const ring = hb.querySelector('.fg-ring');
+      function step(ts){
+        if(!startT) startT=ts;
+        const p = Math.min(1,(ts-startT)/DURATION);
+        ring.setAttribute('stroke-dashoffset', 276*(1-p));
+        if(p<1 && S.holding){ holdTimer=requestAnimationFrame(step); }
+        else if(p>=1){ finishReveal(); }
+      }
+      function finishReveal(){
+        S.holding=false; S.revealedShown=true; sfx.reveal(); render();
+      }
+      function startHold(e){ e.preventDefault(); S.holding=true; hb.classList.add('active'); startT=null; holdTimer=requestAnimationFrame(step); }
+      function endHold(){ if(!S.revealedShown){ S.holding=false; hb.classList.remove('active'); ring.setAttribute('stroke-dashoffset',276); cancelAnimationFrame(holdTimer);} }
+      hb.addEventListener('touchstart',startHold,{passive:false});
+      hb.addEventListener('touchend',endHold);
+      hb.addEventListener('touchcancel',endHold);
+      hb.addEventListener('mousedown',startHold);
+      hb.addEventListener('mouseup',endHold);
+      hb.addEventListener('mouseleave',endHold);
+      holdWrap.appendChild(hb);
+      wrap.appendChild(holdWrap);
+    } else {
+      const info = S.round.info[player.id];
+      const isTarget = S.round.targets && S.round.targets.includes(player.id);
+      const panel = el('div','secret-panel'+(isTarget?' warn':''));
+      panel.innerHTML = `${info.category?`<div class="chip" style="margin-bottom:2px;">Category: ${info.category}</div>`:''}<div class="secret-tag">${info.title}</div><div class="secret-body">${info.body}</div>${info.note?`<div class="secret-note">${info.note}</div>`:''}`;
+      wrap.appendChild(panel);
+      const done = el('button','btn btn-danger','Hide & Pass →'); done.style.marginTop='14px';
+      done.onclick=()=>{
+        sfx.tick();
+        S.revealed[player.id]=true;
+        S.revealIndex++;
+        S.revealedNow=false; S.revealedShown=false; S.holding=false;
+        if(S.revealIndex>=S.players.length){
+          S.screen = S.round.spice ? 'discussion' : 'discussion';
+        }
+        render();
+      };
+      wrap.appendChild(done);
+    }
+  }
+  s.appendChild(wrap);
+  app.appendChild(s);
+};
+
+/* ---- One Night Werewolf pass phase (roles + real swaps) ---- */
+SCREENS.wwreveal = function(){
+  const s = el('div','screen');
+  const round = S.round;
+  const playerId = round.passOrder[S.revealIndex];
+  const player = S.players.find(p=>p.id===playerId);
+  const role = round.originalRoles[playerId];
+  const total = round.passOrder.length;
+  s.appendChild(topbar('One Night', null, (()=>{const d=el('div');d.textContent=`${S.revealIndex+1}/${total}`;d.style.cssText='font-size:13px;color:var(--ink-faint);font-weight:700;';return d;})()));
+
+  const wrap = el('div','pass-wrap');
+
+  if(S.wwStage==='intro'){
+    wrap.appendChild(el('div','pass-icon','🌙'));
+    wrap.appendChild(el('div','eyebrow','Pass the phone to'));
+    wrap.appendChild(el('div','pass-name', player.name));
+    wrap.appendChild(el('div','pass-hint','Make sure only you can see the screen, then tap below.'));
+    const tap = el('button','btn btn-primary', `I\'m ${player.name} — Reveal my role`);
+    tap.style.marginTop='10px';
+    tap.onclick=()=>{ sfx.flip(); S.wwStage='hold'; render(); };
+    wrap.appendChild(tap);
+  }
+  else if(S.wwStage==='hold'){
+    wrap.appendChild(el('div','eyebrow','🔒 Secret Role'));
+    wrap.appendChild(el('div','pass-hint','Make sure nobody else is looking.'));
+    const holdWrap = el('div'); holdWrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px;';
+    const hb = el('div','hold-btn');
+    hb.innerHTML = `<svg viewBox="0 0 100 100"><circle class="bg-ring" cx="50" cy="50" r="44"></circle><circle class="fg-ring" cx="50" cy="50" r="44" stroke-dasharray="276" stroke-dashoffset="276"></circle></svg><div class="hold-label">HOLD TO<br>REVEAL</div>`;
+    let holding=false, holdTimer=null, startT=null; const DURATION=900;
+    const ring = hb.querySelector('.fg-ring');
+    function step(ts){
+      if(!startT) startT=ts;
+      const p = Math.min(1,(ts-startT)/DURATION);
+      ring.setAttribute('stroke-dashoffset', 276*(1-p));
+      if(p<1 && holding){ holdTimer=requestAnimationFrame(step); }
+      else if(p>=1){ finish(); }
+    }
+    function finish(){ holding=false; sfx.reveal(); S.wwStage='role'; render(); }
+    function startHold(e){ e.preventDefault(); holding=true; hb.classList.add('active'); startT=null; holdTimer=requestAnimationFrame(step); }
+    function endHold(){ holding=false; hb.classList.remove('active'); ring.setAttribute('stroke-dashoffset',276); cancelAnimationFrame(holdTimer); }
+    hb.addEventListener('touchstart',startHold,{passive:false});
+    hb.addEventListener('touchend',endHold);
+    hb.addEventListener('touchcancel',endHold);
+    hb.addEventListener('mousedown',startHold);
+    hb.addEventListener('mouseup',endHold);
+    hb.addEventListener('mouseleave',endHold);
+    holdWrap.appendChild(hb);
+    wrap.appendChild(holdWrap);
+  }
+  else if(S.wwStage==='role'){
+    const rinfo = WEREWOLF_ROLE_INFO[role];
+    const panel = el('div','secret-panel'+(role==='Werewolf'?' warn':''));
+    panel.innerHTML = `<div class="secret-tag">Your role</div><div class="secret-body">${rinfo.emoji} ${role.toUpperCase()}</div><div class="secret-note">${roleBlurb(role)}</div>`;
+    wrap.appendChild(panel);
+    const btn = el('button','btn btn-primary','Continue →'); btn.style.marginTop='14px';
+    btn.onclick=()=>{
+      sfx.tick();
+      if(role==='Werewolf'){ finalizeWerewolfInfo(playerId); S.wwStage='result'; }
+      else if(role==='Villager'){ S.wwStage='result'; }
+      else if(role==='Seer'){ S.wwStage='seerChoice'; }
+      else { S.wwStage='select'; S.wwSelected=[]; }
+      render();
+    };
+    wrap.appendChild(btn);
+  }
+  else if(S.wwStage==='seerChoice'){
+    wrap.appendChild(el('div','eyebrow','SEER'));
+    wrap.appendChild(el('div','pass-hint','Choose what to look at. You only get one.'));
+    const opt1 = el('button','btn btn-secondary','👤 View one player\'s role'); opt1.style.marginTop='8px';
+    opt1.onclick=()=>{ sfx.tick(); S.wwStage='select'; S.wwSelected=[]; render(); };
+    const opt2 = el('button','btn btn-secondary','🃏 View 2 cards from the middle'); opt2.style.marginTop='10px';
+    opt2.onclick=()=>{
+      sfx.tick();
+      const round = S.round;
+      const idxs = shuffle([0,1,2]).slice(0,2).sort((a,b)=>a-b);
+      const roles = idxs.map(i=>round.center[i]);
+      round.info[playerId] = {title:'Your role: SEER', body:`You peeked at two of the middle cards: ${roles[0].toUpperCase()} and ${roles[1].toUpperCase()}.`, note:'Those cards belong to nobody — but now you know two of the three things that never made it into play.'};
+      S.wwStage='result'; render();
+    };
+    wrap.appendChild(opt1); wrap.appendChild(opt2);
+  }
+  else if(S.wwStage==='select'){
+    const needCount = role==='Troublemaker' ? 2 : 1;
+    const label = role==='Seer' ? 'Choose a player to secretly view their role.' : role==='Robber' ? 'Choose a player to swap roles with.' : 'Choose two players to secretly swap their roles.';
+    wrap.appendChild(el('div','eyebrow', role.toUpperCase()));
+    wrap.appendChild(el('div','pass-hint', label));
+    const list = el('div','stack'); list.style.width='100%';
+    S.players.filter(p=>p.id!==playerId).forEach((p,i)=>{
+      const opt = el('button','vote-option'+(S.wwSelected.includes(p.id)?' chosen':''));
+      opt.appendChild(avatarEl(p.name,i));
+      const nm = el('div',null,p.name); nm.style.flex='1'; opt.appendChild(nm);
+      if(S.wwSelected.includes(p.id)) opt.appendChild(el('div',null,'✓'));
+      opt.onclick=()=>{
+        sfx.tick();
+        if(S.wwSelected.includes(p.id)){ S.wwSelected = S.wwSelected.filter(x=>x!==p.id); }
+        else if(S.wwSelected.length<needCount){ S.wwSelected.push(p.id); }
+        render();
+      };
+      list.appendChild(opt);
+    });
+    wrap.appendChild(list);
+    const confirm = el('button','btn btn-danger', S.wwSelected.length===needCount? 'Confirm' : `Select ${needCount-S.wwSelected.length} more`);
+    confirm.disabled = S.wwSelected.length!==needCount;
+    confirm.style.marginTop='14px';
+    confirm.onclick=()=>{
+      sfx.lock();
+      resolveWWAction(playerId, role, S.wwSelected);
+      S.wwStage='result'; render();
+    };
+    wrap.appendChild(confirm);
+  }
+  else if(S.wwStage==='result'){
+    const rinfo = round.info[playerId];
+    const panel = el('div','secret-panel'+(role==='Werewolf'?' warn':''));
+    panel.innerHTML = `<div class="secret-tag">${rinfo.title}</div><div class="secret-body" style="font-size:17px;">${rinfo.body}</div>${rinfo.note?`<div class="secret-note">${rinfo.note}</div>`:''}`;
+    wrap.appendChild(panel);
+    const done = el('button','btn btn-danger','Hide & Pass →'); done.style.marginTop='14px';
+    done.onclick=()=>{ sfx.tick(); advanceWW(); };
+    wrap.appendChild(done);
+  }
+
+  s.appendChild(wrap);
+  app.appendChild(s);
+};
+
+function roleBlurb(role){
+  if(role==='Werewolf') return 'You\'ll find out who else is a Werewolf next — or what you can see in the middle if you\'re alone.';
+  if(role==='Seer') return 'You get to secretly view one other player\'s role, or peek at 2 cards from the middle.';
+  if(role==='Robber') return 'You get to swap roles with another player, then see your new role.';
+  if(role==='Troublemaker') return 'You get to blindly swap two other players\' roles.';
+  return 'You have no special power tonight.';
+}
+
+function finalizeWerewolfInfo(playerId){
+  const round = S.round;
+  const fellow = S.players.filter(p=>p.id!==playerId && round.originalRoles[p.id]==='Werewolf').map(p=>p.name);
+  if(fellow.length){
+    round.info[playerId] = {
+      title:'Your role: WEREWOLF',
+      body: `Your fellow Werewolves: ${fellow.join(', ')}.`,
+      note:'Try to blend in with the villagers during discussion.',
+    };
+  } else {
+    const peekRole = round.center[round.wolfCenterPeekIndex];
+    round.info[playerId] = {
+      title:'Your role: WEREWOLF',
+      body: `You're the only Werewolf among the players. You secretly peeked at one of the 3 cards in the middle: ${peekRole.toUpperCase()}.`,
+      note:'Two more unseen cards are still hiding in the middle. Use what you saw to bluff convincingly.',
+    };
+  }
+}
+
+function resolveWWAction(playerId, role, selected){
+  const round = S.round;
+  const nameOf = id => S.players.find(p=>p.id===id).name;
+  if(role==='Seer'){
+    const targetId = selected[0];
+    const targetRole = round.currentRoles[targetId];
+    round.info[playerId] = {title:'Your role: SEER', body:`You peeked at ${nameOf(targetId)}'s role: ${targetRole.toUpperCase()}.`, note:'Remember this — it might be the most reliable info anyone has tonight.'};
+  } else if(role==='Robber'){
+    const targetId = selected[0];
+    const tmp = round.currentRoles[playerId];
+    round.currentRoles[playerId] = round.currentRoles[targetId];
+    round.currentRoles[targetId] = tmp;
+    round.nightLog.push(`${nameOf(playerId)} (Robber) swapped roles with ${nameOf(targetId)}.`);
+    round.info[playerId] = {title:'Your role: ROBBER', body:`You swapped roles with ${nameOf(targetId)}. Your new role is ${round.currentRoles[playerId].toUpperCase()}.`, note:'You are now whatever you just became — even if that\'s the Werewolf.'};
+  } else if(role==='Troublemaker'){
+    const id1=selected[0], id2=selected[1];
+    const tmp = round.currentRoles[id1];
+    round.currentRoles[id1] = round.currentRoles[id2];
+    round.currentRoles[id2] = tmp;
+    round.nightLog.push(`${nameOf(playerId)} (Troublemaker) swapped ${nameOf(id1)} and ${nameOf(id2)}'s roles.`);
+    round.info[playerId] = {title:'Your role: TROUBLEMAKER', body:`You swapped ${nameOf(id1)} and ${nameOf(id2)}'s roles.`, note:'You don\'t know what they became — and neither do they. They still think they\'re whoever they started as.'};
+  }
+}
+
+function advanceWW(){
+  S.revealIndex++;
+  S.wwStage='intro'; S.wwSelected=[];
+  if(S.revealIndex>=S.round.passOrder.length){
+    finalizeWerewolfNight();
+    S.screen='discussion';
+  }
+  render();
+}
+
+function finalizeWerewolfNight(){
+  const round = S.round;
+  const targets = S.players.filter(p=>round.currentRoles[p.id]==='Werewolf').map(p=>p.id);
+  round.targets = targets; // internal only — not shown pre-vote, so this never spoils the outcome
+  const startLines = S.players.map(p=>`${p.name}: ${round.originalRoles[p.id]}`).join(', ');
+  const swapLines = round.nightLog.length ? round.nightLog.join(' ') : 'No roles were swapped tonight.';
+  const finalLines = S.players.map(p=>`${p.name}: ${round.currentRoles[p.id]}`).join(', ');
+  const centerLine = `The 3 cards left in the middle were: ${round.center.map(r=>r.toUpperCase()).join(', ')}.`;
+  const wolfLine = targets.length===0
+    ? `🕊️ Every Werewolf card ended up in the middle this round — no player was ever a Werewolf. It was a peaceful night; voting for nobody was correct.`
+    : `🐺 ${targets.length>1?'The Werewolves were':'The Werewolf was'} ${targets.map(id=>S.players.find(p=>p.id===id).name).join(', ')}.`;
+  round.revealNote = `Starting roles — ${startLines}\n\nDuring the night — ${swapLines}\n\n${centerLine}\n\nFinal roles — ${finalLines}\n\n${wolfLine}`;
+}
+
+/* ---- Wavelength: number-guessing mode (no voting/impostor) ---- */
+function wlNumberRow(marks){
+  const row = el('div'); row.style.cssText='display:flex;gap:6px;justify-content:center;margin:18px 0;flex-wrap:wrap;';
+  for(let i=1;i<=10;i++){
+    const c = el('div', null, i);
+    let bg='var(--card-2)', border='var(--line)', color='var(--ink-dim)';
+    if(marks[i]){ bg=marks[i]; border=marks[i]; color='white'; }
+    c.style.cssText = `width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;background:${bg};border:2px solid ${border};color:${color};`;
+    row.appendChild(c);
+  }
+  return row;
+}
+
+SCREENS.wlannounce = function(){
+  const s = el('div','screen');
+  const round = S.round;
+  const guesser = S.players.find(p=>p.id===round.guesserId);
+  s.appendChild(topbar('Wavelength', null));
+  const wrap = el('div','pass-wrap');
+  wrap.appendChild(el('div','pass-icon','📡'));
+  wrap.appendChild(el('div','eyebrow','This round\'s Guesser is'));
+  wrap.appendChild(el('div','pass-name', guesser.name));
+  wrap.appendChild(el('div','pass-hint', `Everyone else will privately see the same secret number from 1-10. ${guesser.name} won't see it — they'll ask a category and guess the number from everyone's answers.`));
+  const cont = el('button','btn btn-primary','Start passing the phone →'); cont.style.marginTop='10px';
+  cont.onclick=()=>{ sfx.flip(); S.screen='wlnumber'; S.revealIndex=0; S.wlNumRevealed=false; S.wlHoldDone=false; render(); };
+  wrap.appendChild(cont);
+  s.appendChild(wrap);
+  app.appendChild(s);
+};
+
+SCREENS.wlnumber = function(){
+  const s = el('div','screen');
+  const round = S.round;
+  const playerId = round.passOrder[S.revealIndex];
+  const player = S.players.find(p=>p.id===playerId);
+  const guesser = S.players.find(p=>p.id===round.guesserId);
+  s.appendChild(topbar('Wavelength', null, (()=>{const d=el('div');d.textContent=`${S.revealIndex+1}/${round.passOrder.length}`;d.style.cssText='font-size:13px;color:var(--ink-faint);font-weight:700;';return d;})()));
+  const wrap = el('div','pass-wrap');
+  if(!S.wlNumRevealed){
+    wrap.appendChild(el('div','pass-icon','🔢'));
+    wrap.appendChild(el('div','eyebrow','Pass the phone to'));
+    wrap.appendChild(el('div','pass-name', player.name));
+    wrap.appendChild(el('div','pass-hint', `Make sure ${guesser.name} can't see.`));
+    const tap = el('button','btn btn-primary', `I\'m ${player.name} — Reveal the number`); tap.style.marginTop='10px';
+    tap.onclick=()=>{ sfx.flip(); S.wlNumRevealed=true; S.wlHoldDone=false; render(); };
+    wrap.appendChild(tap);
+  } else if(!S.wlHoldDone){
+    wrap.appendChild(el('div','eyebrow','🔒 Secret Number'));
+    wrap.appendChild(el('div','pass-hint','Make sure nobody else is looking.'));
+    const holdWrap = el('div'); holdWrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px;';
+    const hb = el('div','hold-btn');
+    hb.innerHTML = `<svg viewBox="0 0 100 100"><circle class="bg-ring" cx="50" cy="50" r="44"></circle><circle class="fg-ring" cx="50" cy="50" r="44" stroke-dasharray="276" stroke-dashoffset="276"></circle></svg><div class="hold-label">HOLD TO<br>REVEAL</div>`;
+    let holding=false, holdTimer=null, startT=null; const DURATION=900;
+    const ring = hb.querySelector('.fg-ring');
+    function step(ts){
+      if(!startT) startT=ts;
+      const p = Math.min(1,(ts-startT)/DURATION);
+      ring.setAttribute('stroke-dashoffset', 276*(1-p));
+      if(p<1 && holding){ holdTimer=requestAnimationFrame(step); }
+      else if(p>=1){ finish(); }
+    }
+    function finish(){ holding=false; sfx.reveal(); S.wlHoldDone=true; render(); }
+    function startHold(e){ e.preventDefault(); holding=true; hb.classList.add('active'); startT=null; holdTimer=requestAnimationFrame(step); }
+    function endHold(){ holding=false; hb.classList.remove('active'); ring.setAttribute('stroke-dashoffset',276); cancelAnimationFrame(holdTimer); }
+    hb.addEventListener('touchstart',startHold,{passive:false});
+    hb.addEventListener('touchend',endHold);
+    hb.addEventListener('touchcancel',endHold);
+    hb.addEventListener('mousedown',startHold);
+    hb.addEventListener('mouseup',endHold);
+    hb.addEventListener('mouseleave',endHold);
+    holdWrap.appendChild(hb);
+    wrap.appendChild(holdWrap);
+  } else {
+    wrap.appendChild(el('div','eyebrow','🔒 SECRET NUMBER'));
+    const big = el('div'); big.style.cssText='font-size:76px;font-weight:700;font-family:Space Grotesk,sans-serif;color:var(--violet-2);margin:6px 0;';
+    big.textContent = round.number;
+    wrap.appendChild(big);
+    wrap.appendChild(el('div','pass-hint', `Remember this. Everyone except ${guesser.name} knows this same number — nothing else.`));
+    const done = el('button','btn btn-danger','Hide & Pass →'); done.style.marginTop='14px';
+    done.onclick=()=>{
+      sfx.tick();
+      S.revealIndex++;
+      S.wlNumRevealed=false; S.wlHoldDone=false;
+      if(S.revealIndex>=round.passOrder.length){ S.screen='wlprompt'; }
+      render();
+    };
+    wrap.appendChild(done);
+  }
+  s.appendChild(wrap);
+  app.appendChild(s);
+};
+
+SCREENS.wlprompt = function(){
+  const s = el('div','screen');
+  const round = S.round;
+  const guesser = S.players.find(p=>p.id===round.guesserId);
+  s.appendChild(topbar('Wavelength', null));
+  const wrap = el('div','pass-wrap');
+  wrap.appendChild(el('div','pass-icon','🎙️'));
+  wrap.appendChild(el('div','eyebrow','Pass the phone to'));
+  wrap.appendChild(el('div','pass-name', guesser.name));
+  wrap.appendChild(el('div','pass-hint','Ask the group one of these out loud (or make up your own similar one). Everyone else already knows the secret number and will each give you an example.'));
+  s.appendChild(wrap);
+
+  const card = el('div','card'); card.style.marginTop='4px';
+  const listTitle = el('div',null,'Recommended categories'); listTitle.style.cssText='font-weight:700;margin-bottom:10px;font-family:Space Grotesk,sans-serif;font-size:13px;color:var(--violet-2);';
+  card.appendChild(listTitle);
+  round.promptChoices.forEach((p,i)=>{
+    const line = el('div', null, p);
+    line.style.cssText = `font-size:15px;color:var(--ink);padding:10px 0;${i>0?'border-top:1px solid var(--line);':''}`;
+    card.appendChild(line);
+  });
+  s.appendChild(card);
+
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  const cont = el('button','btn btn-primary','Asked my category →'); cont.style.marginTop='14px';
+  cont.onclick=()=>{ sfx.tick(); S.screen='wlguess'; render(); };
+  s.appendChild(cont);
+  app.appendChild(s);
+};
+
+SCREENS.wlguess = function(){
+  const s = el('div','screen');
+  const round = S.round;
+  s.appendChild(topbar('Wavelength', null));
+  s.appendChild(el('h2','title','Make your guess'));
+  s.appendChild(el('p','sub','Answers should fit 1 = worst/least, 10 = best/most.'));
+
+  if(S.wlGuess==null) S.wlGuess=5;
+
+  const numDisplay = el('div'); numDisplay.style.cssText='text-align:center;font-size:56px;font-weight:700;font-family:Space Grotesk,sans-serif;color:var(--teal);margin:6px 0;';
+  numDisplay.textContent = S.wlGuess;
+  s.appendChild(numDisplay);
+
+  const range = document.createElement('input');
+  range.type='range'; range.min='1'; range.max='10'; range.step='1'; range.value=String(S.wlGuess);
+  range.style.cssText='width:100%;accent-color:var(--teal);margin:6px 0 18px;height:34px;';
+  range.oninput=(e)=>{ S.wlGuess=parseInt(e.target.value,10); numDisplay.textContent=S.wlGuess; };
+  s.appendChild(range);
+
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  const submit = el('button','btn btn-primary','Submit Guess 🔒');
+  submit.onclick=()=>{ sfx.lock(); S.screen='wlresult'; render(); };
+  s.appendChild(submit);
+  app.appendChild(s);
+};
+
+SCREENS.wlresult = function(){
+  const s = el('div','screen');
+  const round = S.round;
+  s.appendChild(topbar('Wavelength', null));
+  const dist = Math.abs(round.number - S.wlGuess);
+  const win = dist<=1;
+  if(!S.wlScored){
+    round.win = win;
+    S.wlScored=true;
+    if(win) sfx.win(); else sfx.wrong();
+  }
+  s.appendChild(el('h2','title', win ? '🎯 You got it!' : '💫 Not quite'));
+  const marks = {}; marks[round.number]='var(--coral)';
+  if(S.wlGuess!==round.number) marks[S.wlGuess]='var(--teal)';
+  s.appendChild(wlNumberRow(marks));
+  const card = el('div','card');
+  const guesser = S.players.find(p=>p.id===round.guesserId);
+  card.innerHTML = `<div style="font-size:15px;line-height:1.6;">The secret number was <b>${round.number}</b>. ${guesser.name} guessed <b>${S.wlGuess}</b>.</div><div style="margin-top:10px;font-weight:700;color:${win?'var(--teal)':'var(--coral)'};font-size:22px;">${win?'✅ WIN':'❌ LOSE'}</div>`;
+  s.appendChild(card);
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  const cont = el('button','btn btn-primary','See Scoreboard →');
+  cont.onclick=()=>{ S.screen='scoreboard'; render(); };
+  s.appendChild(cont);
+  app.appendChild(s);
+};
+
+/* ---- Discussion ---- */
+SCREENS.discussion = function(){
+  const s = el('div','screen');
+  s.appendChild(topbar(S.round.modeName, null));
+
+  s.appendChild(el('h2','title','Discuss'));
+  const goalBanner = el('div','banner'); goalBanner.style.cssText='text-align:left;margin-bottom:16px;';
+  goalBanner.innerHTML = `<b>Goal:</b> figure out ${S.round.targetLabel}.<br><br>${S.round.hint||''}`;
+  s.appendChild(goalBanner);
+
+  const timerWrap = el('div','timer-ring-wrap');
+  const R=100, C=2*Math.PI*R*(90/100); // not exact, use fixed
+  timerWrap.innerHTML = `<svg viewBox="0 0 230 230"><circle class="timer-bg" cx="115" cy="115" r="100"></circle><circle class="timer-fg" cx="115" cy="115" r="100" stroke-dasharray="628" stroke-dashoffset="0"></circle></svg><div class="timer-center"><div class="timer-num" id="tnum">--:--</div><div class="timer-label">remaining</div></div>`;
+  s.appendChild(timerWrap);
+
+  const controls = el('div','row'); controls.style.marginTop='6px';
+  const startBtn = el('button','btn btn-primary grow', S.timerRunning? 'Pause' : (S.timerStarted? 'Resume':'Start Timer'));
+  const skipBtn = el('button','btn btn-secondary grow','Skip to Vote');
+  controls.appendChild(startBtn); controls.appendChild(skipBtn);
+  s.appendChild(controls);
+
+  if(S.round.spice && !S.spiceShown){
+    const spiceBtn = el('button','btn-ghost','😈 Trigger a twist event'); spiceBtn.style.marginTop='16px';
+    spiceBtn.onclick=()=>{ S.spiceShown=true; sfx.dramatic(); render(); showSpiceFlash(S.round.spice); };
+    s.appendChild(spiceBtn);
+  } else if(S.round.spice && S.spiceShown){
+    const banner = el('div','banner'); banner.style.marginTop='16px';
+    banner.innerHTML = `<b>${S.round.spice.emoji} ${S.round.spice.name}</b><br>${S.round.spice.text}`;
+    s.appendChild(banner);
+  }
+
+  if(S.round.discussionPrompts && S.round.discussionPrompts.length){
+    const qCard = el('div','card'); qCard.style.marginTop='16px';
+    qCard.appendChild(el('div',null,'Stuck? Try asking:')).style.cssText='font-weight:700;margin-bottom:8px;font-family:Space Grotesk,sans-serif;font-size:14px;color:var(--violet-2);';
+    const list = document.createElement('ul'); list.style.cssText='margin:0;padding-left:18px;color:var(--ink-dim);font-size:13px;line-height:1.7;';
+    S.round.discussionPrompts.forEach(q=>{ const li=document.createElement('li'); li.textContent=q; list.appendChild(li); });
+    qCard.appendChild(list);
+    s.appendChild(qCard);
+  }
+
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  skipBtn.onclick=()=>{ sfx.tick(); stopTimerLoop(); S.screen='votepass'; S.voteIndex=0; S.votes={}; render(); };
+  app.appendChild(s);
+
+  // timer logic
+  if(S.remainingSec===undefined || S.remainingSec===null) S.remainingSec = S.discussionSeconds;
+  updateTimerDisplay();
+  startBtn.onclick=()=>{
+    if(S.timerRunning){ S.timerRunning=false; stopTimerLoop(); }
+    else { S.timerRunning=true; S.timerStarted=true; runTimerLoop(); }
+    render();
+  };
+};
+let timerInterval=null;
+function stopTimerLoop(){ if(timerInterval){ clearInterval(timerInterval); timerInterval=null; } }
+function runTimerLoop(){
+  stopTimerLoop();
+  timerInterval = setInterval(()=>{
+    S.remainingSec--;
+    if(S.remainingSec<=5 && S.remainingSec>0) sfx.tick();
+    if(S.remainingSec<=0){
+      S.remainingSec=0; S.timerRunning=false; stopTimerLoop(); sfx.dramatic();
+      S.screen='votepass'; S.voteIndex=0; S.votes={};
+      render(); return;
+    }
+    updateTimerDisplay();
+  },1000);
+}
+function updateTimerDisplay(){
+  const num = document.getElementById('tnum'); if(!num) return;
+  const m = Math.floor(S.remainingSec/60), sec = S.remainingSec%60;
+  num.textContent = `${m}:${sec.toString().padStart(2,'0')}`;
+  const frac = S.remainingSec / S.discussionSeconds;
+  const circumference = 628;
+  const fg = document.querySelector('.timer-fg');
+  if(fg){
+    fg.setAttribute('stroke-dashoffset', (circumference*(1-frac)).toFixed(1));
+    fg.classList.remove('warn','crit');
+    if(frac<0.15) fg.classList.add('crit'); else if(frac<0.4) fg.classList.add('warn');
+  }
+}
+function showSpiceFlash(spice){
+  const flash = el('div','spice-flash');
+  flash.innerHTML = `<div style="font-size:52px">${spice.emoji}</div><div class="title" style="font-size:24px">${spice.name}</div><div class="sub" style="max-width:320px">${spice.text}</div>`;
+  const ok = el('button','btn btn-primary','Got it'); ok.style.maxWidth='220px';
+  ok.onclick=()=>{ flash.remove(); render(); };
+  flash.appendChild(ok);
+  document.body.appendChild(flash);
+}
+
+/* ---- Vote pass ---- */
+SCREENS.votepass = function(){
+  const s = el('div','screen');
+  const voter = S.players[S.voteIndex];
+  s.appendChild(topbar('Vote', null, (()=>{const d=el('div');d.textContent=`${S.voteIndex+1}/${S.players.length}`;d.style.cssText='font-size:13px;color:var(--ink-faint);font-weight:700;';return d;})()));
+
+  if(!S.votingNow){
+    const wrap = el('div','pass-wrap');
+    wrap.appendChild(el('div','pass-icon','🗳️'));
+    wrap.appendChild(el('div','eyebrow','Pass the phone to'));
+    wrap.appendChild(el('div','pass-name', voter.name));
+    wrap.appendChild(el('div','pass-hint','Vote privately, then it locks and passes on.'));
+    const tap = el('button','btn btn-primary', `I\'m ${voter.name} — Vote now`); tap.style.marginTop='10px';
+    tap.onclick=()=>{ sfx.flip(); S.votingNow=true; render(); };
+    wrap.appendChild(tap);
+    s.appendChild(wrap);
+  } else {
+    s.appendChild(el('h2','title','Cast Your Vote'));
+    s.appendChild(el('p','sub', `You're looking for: ${S.round.targetLabel}. Tap a name to vote, then lock it in.`));
+    const list = el('div','stack');
+    S.players.forEach((p,i)=>{
+      const opt = el('button','vote-option'+(S.tmpVote===p.id?' chosen':''));
+      opt.appendChild(avatarEl(p.name,i));
+      const nm = el('div',null,p.name); nm.style.flex='1'; opt.appendChild(nm);
+      if(S.tmpVote===p.id) opt.appendChild(el('div',null,'✓'));
+      opt.onclick=()=>{ sfx.tick(); S.tmpVote=p.id; render(); };
+      list.appendChild(opt);
+    });
+    if(S.round.allowSkipVote){
+      const opt = el('button','vote-option'+(S.tmpVote==='NOBODY'?' chosen':''));
+      const av = el('div','avatar','🤷'); av.style.background='linear-gradient(135deg,var(--ink-faint),var(--line))';
+      opt.appendChild(av);
+      const nm = el('div',null,'Nobody — peaceful night'); nm.style.flex='1'; opt.appendChild(nm);
+      if(S.tmpVote==='NOBODY') opt.appendChild(el('div',null,'✓'));
+      opt.onclick=()=>{ sfx.tick(); S.tmpVote='NOBODY'; render(); };
+      list.appendChild(opt);
+    }
+    s.appendChild(list);
+    const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+    const lock = el('button','btn btn-danger', S.tmpVote? 'Lock In Vote 🔒' : 'Select a player');
+    lock.disabled = !S.tmpVote;
+    lock.onclick=()=>{
+      sfx.lock();
+      S.votes[voter.id]=S.tmpVote;
+      S.tmpVote=null; S.votingNow=false;
+      S.voteIndex++;
+      if(S.voteIndex>=S.players.length){ S.screen='voteresult'; }
+      render();
+    };
+    s.appendChild(lock);
+  }
+  app.appendChild(s);
+};
+
+/* ---- Vote results + reveal ---- */
+SCREENS.voteresult = function(){
+  const s = el('div','screen');
+  s.appendChild(topbar('Results', null));
+  s.appendChild(el('h2','title','Votes are in'));
+
+  const tally={}; S.players.forEach(p=>tally[p.id]=0);
+  if(S.round.allowSkipVote) tally['NOBODY']=0;
+  Object.values(S.votes).forEach(t=>tally[t]=(tally[t]||0)+1);
+  const maxVotes = Math.max(0,...Object.values(tally));
+  const topVoted = Object.keys(tally).filter(id=>tally[id]===maxVotes && maxVotes>0);
+
+  const card = el('div','card'); card.style.marginBottom='16px';
+  S.players.slice().sort((a,b)=>tally[b.id]-tally[a.id]).forEach((p,i)=>{
+    const row = el('div','result-row');
+    row.appendChild(avatarEl(p.name,i));
+    const nm = el('div',null,p.name); nm.style.cssText='width:88px;font-weight:600;font-size:14px;flex-shrink:0;';
+    row.appendChild(nm);
+    const barBg = el('div','result-bar-bg'); const barFg=el('div','result-bar-fg');
+    barFg.style.width = maxVotes? `${(tally[p.id]/maxVotes)*100}%` : '0%';
+    barBg.appendChild(barFg); row.appendChild(barBg);
+    row.appendChild(el('div',null,tally[p.id])).style.cssText='font-weight:700;width:18px;text-align:right;';
+    card.appendChild(row);
+  });
+  if(S.round.allowSkipVote){
+    const row = el('div','result-row');
+    const av = el('div','avatar','🤷'); av.style.background='linear-gradient(135deg,var(--ink-faint),var(--line))';
+    row.appendChild(av);
+    const nm = el('div',null,'Nobody'); nm.style.cssText='width:88px;font-weight:600;font-size:14px;flex-shrink:0;';
+    row.appendChild(nm);
+    const barBg = el('div','result-bar-bg'); const barFg=el('div','result-bar-fg');
+    barFg.style.width = maxVotes? `${(tally['NOBODY']/maxVotes)*100}%` : '0%';
+    barBg.appendChild(barFg); row.appendChild(barBg);
+    row.appendChild(el('div',null,tally['NOBODY'])).style.cssText='font-weight:700;width:18px;text-align:right;';
+    card.appendChild(row);
+  }
+  s.appendChild(card);
+
+  const reveal = el('button','btn btn-primary','Reveal the truth →');
+  reveal.onclick=()=>{
+    sfx.dramatic();
+    applyScoring(topVoted);
+    const round = S.round;
+    if(round.caught && round.redemption && round.targets.length>0){
+      S.redemptionQueue = round.targets.slice();
+      S.redemptionIndex = 0;
+      S.redemptionChoice = null;
+      S.redemptionRevealed = false;
+      S.screen='redemption';
+    } else {
+      S.screen='roundresult';
+    }
+    render();
+  };
+  s.appendChild(reveal);
+  app.appendChild(s);
+};
+
+SCREENS.redemption = function(){
+  const s = el('div','screen');
+  const round = S.round;
+  const targetId = S.redemptionQueue[S.redemptionIndex];
+  const player = S.players.find(p=>p.id===targetId);
+  s.appendChild(topbar('Last Chance', null));
+
+  if(!S.redemptionRevealed){
+    const wrap = el('div','pass-wrap');
+    wrap.appendChild(el('div','pass-icon','🎲'));
+    wrap.appendChild(el('div','eyebrow','Pass the phone to'));
+    wrap.appendChild(el('div','pass-name', player.name));
+    wrap.appendChild(el('div','pass-hint','You were caught — but you get one shot to guess right and win anyway.'));
+    const tap = el('button','btn btn-primary', `I\'m ${player.name} — Take my shot`); tap.style.marginTop='10px';
+    tap.onclick=()=>{ sfx.flip(); S.redemptionRevealed=true; render(); };
+    wrap.appendChild(tap);
+    s.appendChild(wrap);
+  } else {
+    s.appendChild(el('h2','title','Last Chance'));
+    s.appendChild(el('p','sub', round.redemption.question));
+    const list = el('div','stack');
+    round.redemption.options.forEach(opt=>{
+      const btn = el('button','vote-option'+(S.redemptionChoice===opt?' chosen':''), opt);
+      btn.style.textAlign='left';
+      btn.onclick=()=>{ sfx.tick(); S.redemptionChoice=opt; render(); };
+      list.appendChild(btn);
+    });
+    s.appendChild(list);
+    const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+    const confirm = el('button','btn btn-danger', S.redemptionChoice? 'Lock In Answer' : 'Pick an answer');
+    confirm.disabled = !S.redemptionChoice;
+    confirm.onclick=()=>{
+      sfx.lock();
+      const correct = S.redemptionChoice === round.redemption.correct;
+      round.redemptionResults = round.redemptionResults || {};
+      round.redemptionResults[targetId] = correct;
+      if(correct){ S.score[targetId] = (S.score[targetId]||0)+5; }
+      S.redemptionIndex++;
+      S.redemptionRevealed = false; S.redemptionChoice = null;
+      if(S.redemptionIndex>=S.redemptionQueue.length){ S.screen='roundresult'; }
+      render();
+    };
+    s.appendChild(confirm);
+  }
+  app.appendChild(s);
+};
+
+function applyScoring(topVoted){
+  const round=S.round;
+  const targets = round.targets;
+  if(targets.length===0){
+    // Peaceful night (werewolf mode only): correct answer is voting "Nobody".
+    round.caught = topVoted.length===1 && topVoted[0]==='NOBODY';
+    round.topVoted = topVoted;
+    Object.entries(S.votes).forEach(([voterId,voteVal])=>{
+      if(voteVal==='NOBODY'){ S.score[voterId]=(S.score[voterId]||0)+3; stats.correctAccusations++; }
+    });
+    stats.roundsPlayed++;
+    stats.curStreak = round.caught? stats.curStreak+1 : 0;
+    stats.bestStreak = Math.max(stats.bestStreak, stats.curStreak);
+    saveStats();
+    return;
+  }
+  const caught = targets.some(t=>topVoted.includes(t)) && topVoted.length===1;
+  round.caught = caught;
+  round.topVoted = topVoted;
+  // voters who correctly voted for a target get points
+  Object.entries(S.votes).forEach(([voterId,targetId])=>{
+    if(targets.includes(targetId)){
+      S.score[voterId] = (S.score[voterId]||0)+3;
+      stats.correctAccusations++;
+    }
+  });
+  // target(s): bonus if not caught (survived)
+  targets.forEach(tid=>{
+    if(!caught){ S.score[tid]=(S.score[tid]||0)+4; stats.successfulBluffs++; }
+    else { stats.timesVotedOut++; }
+  });
+  stats.roundsPlayed++;
+  stats.curStreak = caught? 0 : stats.curStreak+1;
+  stats.bestStreak = Math.max(stats.bestStreak, stats.curStreak);
+  saveStats();
+}
+
+SCREENS.roundresult = function(){
+  const s = el('div','screen');
+  s.appendChild(topbar('Reveal', null));
+  const round = S.round;
+  s.appendChild(el('div','tag-truth', round.modeName));
+  const peaceful = round.mode==='werewolf' && round.targets.length===0;
+  let heading;
+  if(peaceful){ heading = round.caught ? '🕊️ Peaceful Night — Well Read!' : '🌙 It Was Peaceful — Nobody Guessed It'; }
+  else { heading = round.caught ? '🎯 Caught!' : '😈 They got away with it.'; }
+  s.appendChild(el('h2','title', heading));
+
+  const card = el('div','card card-glow'); card.style.marginBottom='14px';
+  card.innerHTML = `<div style="white-space:pre-line;font-size:15px;line-height:1.6;color:var(--ink);margin-bottom:10px;">${round.revealNote}</div>`;
+  if(round.targets.length>0){
+    const targetNames = round.targets.map(id=>S.players.find(p=>p.id===id).name).join(', ');
+    card.appendChild(el('div','tag-target', `${round.targetLabel}: ${targetNames}`));
+  } else if(peaceful){
+    card.appendChild(el('div','tag-target', 'No Werewolf was in play this round'));
+  }
+  s.appendChild(card);
+
+  if(round.redemptionResults && Object.keys(round.redemptionResults).length){
+    const rcard = el('div','card'); rcard.style.marginBottom='16px';
+    rcard.appendChild(el('div',null,'Last chance results:')).style.cssText='font-weight:700;margin-bottom:8px;font-family:Space Grotesk,sans-serif;';
+    Object.entries(round.redemptionResults).forEach(([pid,correct])=>{
+      const name = S.players.find(p=>p.id===pid).name;
+      const row = el('div'); row.style.cssText='font-size:13px;color:var(--ink-dim);margin-bottom:4px;';
+      row.textContent = correct ? `🎲 ${name} guessed right and escaped anyway! (+5)` : `🎲 ${name} guessed wrong — stayed caught.`;
+      rcard.appendChild(row);
+    });
+    s.appendChild(rcard);
+  }
+
+  // per-player info recap
+  const recap = el('div','card'); recap.style.marginBottom='16px';
+  recap.appendChild(el('div',null,'What everyone had:')).style.cssText='font-weight:700;margin-bottom:10px;font-family:Space Grotesk,sans-serif;';
+  S.players.forEach((p,i)=>{
+    const info = round.info[p.id];
+    const row = el('div'); row.style.cssText='margin-bottom:10px;font-size:13px;line-height:1.5;';
+    row.innerHTML = `<b style="color:var(--violet-2)">${p.name}:</b> <span style="color:var(--ink-dim)">${info.body}</span>`;
+    recap.appendChild(row);
+  });
+  s.appendChild(recap);
+
+  const cont = el('button','btn btn-primary','See Scoreboard →');
+  cont.onclick=()=>{ sfx.win(); S.screen='scoreboard'; render(); };
+  s.appendChild(cont);
+  app.appendChild(s);
+};
+
+SCREENS.scoreboard = function(){
+  const s = el('div','screen');
+  s.appendChild(topbar('Scoreboard', null));
+  s.appendChild(el('h2','title','🏆 Scoreboard'));
+
+  const card = el('div','card');
+  S.players.slice().sort((a,b)=>(S.score[b.id]||0)-(S.score[a.id]||0)).forEach((p,i)=>{
+    const row = el('div','scoreboard-row');
+    row.appendChild(el('div',null, i===0?'👑':`${i+1}`)).style.cssText='width:22px;text-align:center;color:var(--ink-faint);font-weight:700;';
+    row.appendChild(avatarEl(p.name,i));
+    const nm = el('div',null,p.name); nm.style.cssText='flex:1;font-weight:600;'; row.appendChild(nm);
+    row.appendChild(el('div','score-num', S.score[p.id]||0));
+    card.appendChild(row);
+  });
+  s.appendChild(card);
+
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  const btns = el('div','stack');
+  const again = el('button','btn btn-primary','🔁 Next Round');
+  again.onclick=()=>{ sfx.flip(); resetForNextRound(); startPassPhase(); };
+  const end = el('button','btn btn-secondary','🏁 End Game');
+  end.onclick=()=>{ sfx.tick(); stats.gamesPlayed++; saveStats(); S.screen='menu'; resetGameState(); render(); };
+  btns.appendChild(again); btns.appendChild(end);
+  s.appendChild(btns);
+  app.appendChild(s);
+};
+
+function resetForNextRound(){
+  S.revealed={}; S.revealIndex=0; S.votes={}; S.voteIndex=0; S.remainingSec=null;
+  S.timerRunning=false; S.timerStarted=false; S.spiceShown=false; S.tmpVote=null;
+  S.revealedNow=false; S.revealedShown=false; S.wwStage='intro'; S.wwSelected=[];
+  S.redemptionQueue=[]; S.redemptionIndex=0; S.redemptionChoice=null; S.redemptionRevealed=false;
+  S.wlGuess=null; S.wlScored=false; S.wlNumRevealed=false; S.wlHoldDone=false;
+  stopTimerLoop();
+}
+function resetGameState(){
+  resetForNextRound(); S.players=[]; S.score={}; S.round=null; S.selectedMode=null; S.wlLastGuesserId=null;
+}
+
+/* ---- How to play ---- */
+const TUTORIAL = [
+  {emoji:'✍️', title:'1. Enter Names', body:'Everyone playing enters their name on one phone.'},
+  {emoji:'📱', title:'2. Pass the Phone', body:'Tap your name, hold to reveal your secret. Make sure nobody else looks.'},
+  {emoji:'🗣️', title:'3. Talk', body:'Figure out who knows the truth, who\'s bluffing, and what the secret actually is.'},
+  {emoji:'🗳️', title:'4. Vote', body:'Pass the phone again. Everyone votes secretly for who they suspect.'},
+  {emoji:'🎉', title:'5. Reveal', body:'Find out who was lying, who was wrong, and who played everyone.'},
+];
+SCREENS.howto = function(){
+  const s = el('div','screen');
+  s.appendChild(topbar('How to Play', ()=>{ S.screen='menu'; render(); }));
+  const slide = TUTORIAL[S.tutIndex];
+  const body = el('div','tutorial-slide');
+  body.appendChild(el('div','tut-emoji', slide.emoji));
+  body.appendChild(el('h2','title', slide.title));
+  body.appendChild(el('p','sub', slide.body));
+  s.appendChild(body);
+
+  const dots = el('div','dots');
+  TUTORIAL.forEach((_,i)=>dots.appendChild(el('div','dot'+(i===S.tutIndex?' on':''))));
+  s.appendChild(dots);
+
+  const row = el('div','row');
+  if(S.tutIndex>0){
+    const back = el('button','btn btn-secondary grow','Back');
+    back.onclick=()=>{ S.tutIndex--; render(); }; row.appendChild(back);
+  }
+  const next = el('button','btn btn-primary grow', S.tutIndex<TUTORIAL.length-1 ? 'Next' : 'See Game Modes →');
+  next.onclick=()=>{
+    if(S.tutIndex<TUTORIAL.length-1){ S.tutIndex++; render(); }
+    else { S.screen='howmodes'; render(); }
+  };
+  row.appendChild(next);
+  s.appendChild(row);
+  app.appendChild(s);
+};
+
+SCREENS.howmodes = function(){
+  const s = el('div','screen');
+  s.appendChild(topbar('How to Play', ()=>{ S.screen='howto'; S.tutIndex=TUTORIAL.length-1; render(); }));
+  s.appendChild(el('h2','title','Game Modes'));
+  s.appendChild(el('p','sub','Tap a mode to see exactly how it works.'));
+  const list = el('div','stack');
+  MODES.forEach(m=>{
+    const c = el('button','mode-card');
+    c.innerHTML = `<div class="mode-emoji">${m.emoji}</div><div><div class="mode-name">${m.name}</div><div class="mode-desc">${m.desc}</div></div>`;
+    c.onclick=()=>{ sfx.tick(); S.howmodeId=m.id; S.screen='howmodedetail'; render(); };
+    list.appendChild(c);
+  });
+  s.appendChild(list);
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  const done = el('button','btn btn-primary','Done'); done.style.marginTop='14px';
+  done.onclick=()=>{ S.screen='menu'; render(); };
+  s.appendChild(done);
+  app.appendChild(s);
+};
+
+SCREENS.howmodedetail = function(){
+  const s = el('div','screen');
+  const m = MODES.find(x=>x.id===S.howmodeId);
+  s.appendChild(topbar('How to Play', ()=>{ S.screen='howmodes'; render(); }));
+  const head = el('div'); head.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:14px;';
+  head.appendChild(el('div',null,m.emoji)).style.fontSize='36px';
+  head.appendChild(el('h2','title', m.name)).style.margin='0';
+  s.appendChild(head);
+  const card = el('div','card');
+  card.style.cssText+=';white-space:pre-line;font-size:14px;line-height:1.7;color:var(--ink-dim);';
+  card.textContent = m.detail || m.desc;
+  s.appendChild(card);
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  const back = el('button','btn btn-primary','← All Modes'); back.style.marginTop='14px';
+  back.onclick=()=>{ S.screen='howmodes'; render(); };
+  s.appendChild(back);
+  app.appendChild(s);
+};
+
+/* ---- Stats ---- */
+SCREENS.stats = function(){
+  const s = el('div','screen');
+  s.appendChild(topbar('Stats', ()=>{ S.screen='menu'; render(); }));
+  s.appendChild(el('h2','title','🏅 Your Stats'));
+
+  const grid = el('div','stat-grid');
+  const items = [
+    [stats.gamesPlayed,'Games Played'], [stats.roundsPlayed,'Rounds Played'],
+    [stats.correctAccusations,'Correct Accusations'], [stats.successfulBluffs,'Successful Bluffs'],
+    [stats.timesVotedOut,'Times Caught'], [stats.bestStreak,'Best Streak'],
+  ];
+  items.forEach(([n,l])=>{
+    const box = el('div','stat-box');
+    box.innerHTML = `<div class="stat-num">${n}</div><div class="stat-label">${l}</div>`;
+    grid.appendChild(box);
+  });
+  s.appendChild(grid);
+
+  const titleCard = el('div','card'); titleCard.style.marginTop='16px';
+  let title='🎲 GETTING STARTED', desc='Play a few rounds to earn a title.';
+  if(stats.roundsPlayed>=3){
+    if(stats.successfulBluffs > stats.timesVotedOut && stats.successfulBluffs>=3){ title='🐍 THE SNAKE'; desc='Most successful bluffs. Nobody can catch you.'; }
+    else if(stats.correctAccusations>=5){ title='👁️ HUMAN LIE DETECTOR'; desc='You call out liars better than most.'; }
+    else if(stats.timesVotedOut>=3 && stats.timesVotedOut>stats.successfulBluffs){ title='🤡 PROFESSIONAL VICTIM'; desc='Most times incorrectly — or correctly — voted out.'; }
+    else { title='🕵️ SOLID DEDUCER'; desc='Keep playing to unlock a sharper title.'; }
+  }
+  titleCard.innerHTML = `<div class="eyebrow">Your title</div><div style="font-size:18px;font-weight:700;font-family:'Space Grotesk',sans-serif;margin-bottom:4px;">${title}</div><div style="font-size:13px;color:var(--ink-dim)">${desc}</div>`;
+  s.appendChild(titleCard);
+
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  const reset = el('button','btn-ghost','Reset stats');
+  reset.onclick=()=>{
+    if(confirm('Reset all stats?')){
+      stats={gamesPlayed:0,roundsPlayed:0,correctAccusations:0,successfulBluffs:0,timesVotedOut:0,bestStreak:0,curStreak:0};
+      saveStats(); render();
+    }
+  };
+  s.appendChild(reset);
+  app.appendChild(s);
+};
+
+/* ---- Settings ---- */
+SCREENS.settings = function(){
+  const s = el('div','screen');
+  s.appendChild(topbar('Settings', ()=>{ S.screen = S.players.length? 'menu':'menu'; render(); }));
+  s.appendChild(el('h2','title','⚙️ Settings'));
+
+  const card = el('div','card');
+  const row = el('div'); row.style.cssText='display:flex;align-items:center;justify-content:space-between;';
+  row.appendChild(el('div',null,'🔊 Sound effects')).style.fontWeight='600';
+  const toggle = el('button','pill'+(settings.sound?' active':''), settings.sound?'On':'Off');
+  toggle.onclick=()=>{ settings.sound=!settings.sound; saveSettings(); if(settings.sound) beep(660,.1); render(); };
+  row.appendChild(toggle);
+  card.appendChild(row);
+  s.appendChild(card);
+
+  const card2 = el('div','card'); card2.style.marginTop='12px';
+  const row2 = el('div'); row2.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;';
+  const label2 = el('div');
+  label2.innerHTML = `<div style="font-weight:600;">🏷️ Category hints</div><div style="font-size:12px;color:var(--ink-dim);margin-top:2px;max-width:220px;">In The Secret and The Mole, shows a broad category (like "Food") to everyone, including the Blank/Mole — so their guesses stay in the ballpark.</div>`;
+  const toggle2 = el('button','pill'+(settings.categoryHints?' active':''), settings.categoryHints?'On':'Off');
+  toggle2.onclick=()=>{ settings.categoryHints=!settings.categoryHints; saveSettings(); sfx.tick(); render(); };
+  row2.appendChild(label2); row2.appendChild(toggle2);
+  card2.appendChild(row2);
+  s.appendChild(card2);
+
+  const spacer=el('div'); spacer.style.flex='1'; s.appendChild(spacer);
+  const back = el('button','btn btn-primary','Done');
+  back.onclick=()=>{ S.screen='menu'; render(); };
+  s.appendChild(back);
+  app.appendChild(s);
+};
+
+/* ============================= INIT ============================= */
+render();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{ /* offline install just won't be available */ });
+  });
+}
+</script>
+</body>
+</html>
